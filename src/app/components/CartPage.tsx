@@ -105,8 +105,7 @@ export default function CartPage() {
 
   const checkoutUrl = `https://il-distributions-llc.myshopify.com/cart/${cartItems}`;
 
-  alert(checkoutUrl);
-  console.log('Checkout URL:', checkoutUrl);
+  window.location.href = checkoutUrl;
 }
 
   if (loading) {
