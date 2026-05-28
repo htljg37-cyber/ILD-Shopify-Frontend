@@ -8,11 +8,7 @@ import {
   PackageCheck,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import {
-  getCart,
-  updateCartLine,
-  removeCartLine,
-} from '../../lib/shopify';
+import { getCart, updateCartLine, removeCartLine } from '../../lib/shopify';
 
 export default function CartPage() {
   const [cart, setCart] = useState<any>(null);
@@ -29,7 +25,10 @@ export default function CartPage() {
     const data = await getCart(cartId);
     setCart(data);
 
-    localStorage.setItem('shopify_cart_quantity', String(data?.totalQuantity || 0));
+    localStorage.setItem(
+      'shopify_cart_quantity',
+      String(data?.totalQuantity || 0)
+    );
     window.dispatchEvent(new Event('cartUpdated'));
 
     setLoading(false);
@@ -46,7 +45,10 @@ export default function CartPage() {
     const updatedCart = await updateCartLine(cartId, lineId, quantity + 1);
     setCart(updatedCart);
 
-    localStorage.setItem('shopify_cart_quantity', String(updatedCart?.totalQuantity || 0));
+    localStorage.setItem(
+      'shopify_cart_quantity',
+      String(updatedCart?.totalQuantity || 0)
+    );
     window.dispatchEvent(new Event('cartUpdated'));
   }
 
@@ -62,7 +64,10 @@ export default function CartPage() {
     const updatedCart = await updateCartLine(cartId, lineId, quantity - 1);
     setCart(updatedCart);
 
-    localStorage.setItem('shopify_cart_quantity', String(updatedCart?.totalQuantity || 0));
+    localStorage.setItem(
+      'shopify_cart_quantity',
+      String(updatedCart?.totalQuantity || 0)
+    );
     window.dispatchEvent(new Event('cartUpdated'));
   }
 
@@ -73,8 +78,30 @@ export default function CartPage() {
     const updatedCart = await removeCartLine(cartId, lineId);
     setCart(updatedCart);
 
-    localStorage.setItem('shopify_cart_quantity', String(updatedCart?.totalQuantity || 0));
+    localStorage.setItem(
+      'shopify_cart_quantity',
+      String(updatedCart?.totalQuantity || 0)
+    );
     window.dispatchEvent(new Event('cartUpdated'));
+  }
+
+  function handleCheckout() {
+    if (!cart?.checkoutUrl) {
+      alert(
+        'Checkout is not available yet. Please refresh your cart and try again.'
+      );
+      return;
+    }
+
+    try {
+      const checkoutUrl = new URL(cart.checkoutUrl);
+      checkoutUrl.hostname = 'il-distributions-llc.myshopify.com';
+
+      window.location.href = checkoutUrl.toString();
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Unable to open checkout. Please try again.');
+    }
   }
 
   if (loading) {
@@ -120,7 +147,8 @@ export default function CartPage() {
             </h2>
 
             <p className="mx-auto max-w-md text-[#717182]">
-              Explore our curated catalog and add your favorite products before checkout.
+              Explore our curated catalog and add your favorite products before
+              checkout.
             </p>
 
             <a href="/catalog">
@@ -232,13 +260,7 @@ export default function CartPage() {
               </div>
 
               <Button
-                onClick={() => {
-                  if (!cart?.checkoutUrl) {
-                    alert('Checkout is not available yet. Please refresh your cart and try again.');
-                    return;
-                  }
-                  window.location.assign(cart.checkoutUrl);
-                }}
+                onClick={handleCheckout}
                 className="h-14 w-full rounded-2xl bg-[#0F5A46] text-base text-white shadow-[0_12px_30px_rgba(15,90,70,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#126B54] hover:shadow-[0_18px_42px_rgba(15,90,70,0.38)] active:translate-y-0 active:scale-[0.98]"
               >
                 Proceed to Checkout
