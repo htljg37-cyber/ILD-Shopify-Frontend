@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Search,
-  User,
-  ShoppingCart,
-  Menu,
-  X,
-} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Search, User, ShoppingCart, Menu, X } from 'lucide-react';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { getProducts } from '../../lib/shopify';
-import logo from '../../assets/logo.png';
+import logo from '../assets/logo.png';
 
 function normalizeText(text: string) {
   return text.toLowerCase().replaceAll('_', ' ').trim();
@@ -150,6 +145,14 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
     function updateCartQuantity() {
       const quantity = localStorage.getItem('shopify_cart_quantity');
       setCartQuantity(quantity ? Number(quantity) : 0);
@@ -180,11 +183,9 @@ export function Header() {
     return products
       .map((product) => {
         const title = normalizeText(product.title || '');
-
         const tags = (product.tags || []).map((tag: string) =>
           normalizeText(tag)
         );
-
         const tagText = tags.join(' ');
 
         let score = 0;
@@ -194,7 +195,6 @@ export function Header() {
 
         query.split(' ').forEach((word) => {
           if (!word) return;
-
           if (title.includes(word)) score += 3;
           if (tagText.includes(word)) score += 2;
         });
@@ -274,7 +274,7 @@ export function Header() {
               >
                 <ShoppingCart className="h-5 w-5 text-[#111111] transition-all duration-300" />
 
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#0F5A46] text-white text-xs flex items-center justify-center shadow-[0_4px_12px_rgba(15,90,70,0.35)] transition-all duration-300 group-hover:scale-110">
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#0F5A46] text-white text-xs flex items-center justify-center shadow-[0_4px_12px_rgba(15,90,70,0.35)]">
                   {cartQuantity}
                 </span>
               </Button>
@@ -283,51 +283,94 @@ export function Header() {
         </div>
       </header>
 
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[9999] lg:hidden">
-          <div
-            className="absolute inset-0 bg-[#000000]/80"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            key="mobile-menu-wrapper"
+            className="fixed inset-0 z-[9999] lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-black/65 backdrop-blur-[3px]"
+              onClick={() => setMobileMenuOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.28 }}
+            />
 
-          <aside className="relative z-[10000] h-screen w-[85%] max-w-sm bg-white text-[#111111] shadow-2xl border-r border-gray-200 p-6 overflow-y-auto">
-            <div className="flex items-center justify-between mb-8">
-              <span className="text-xl font-bold tracking-tight">Menu</span>
-
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="h-10 w-10 rounded-full bg-[#F5F5F5] flex items-center justify-center transition-all duration-300 hover:bg-[#0F5A46] hover:text-white"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <div className="mb-8">
-              <SearchBox
-                mobile
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                searchResults={searchResults}
-                setMobileMenuOpen={setMobileMenuOpen}
-              />
-            </div>
-
-            <nav className="flex flex-col gap-1">
-              {[...navItems, ['My Account', '/account']].map(([label, href]) => (
-                <a
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-xl px-4 py-4 text-base font-semibold tracking-tight text-[#111111] transition-all duration-300 hover:bg-[#F5F5F5] hover:translate-x-1 hover:text-[#0F5A46]"
+            <motion.aside
+              className="relative z-[10000] h-screen w-[86%] max-w-sm overflow-y-auto border-r border-white/40 bg-white/95 p-6 text-[#111111] shadow-[24px_0_70px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+              initial={{ x: '-100%', opacity: 0, filter: 'blur(8px)' }}
+              animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }}
+              exit={{ x: '-100%', opacity: 0, filter: 'blur(8px)' }}
+              transition={{
+                duration: 0.42,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              <div className="mb-8 flex items-center justify-between">
+                <motion.span
+                  className="text-xl font-bold tracking-tight"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12, duration: 0.28 }}
                 >
-                  {label}
-                </a>
-              ))}
-            </nav>
-          </aside>
-        </div>
-      )}
+                  Menu
+                </motion.span>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] transition-all duration-300 hover:bg-[#0F5A46] hover:text-white active:scale-95"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <motion.div
+                className="mb-8"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.16, duration: 0.32 }}
+              >
+                <SearchBox
+                  mobile
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  searchResults={searchResults}
+                  setMobileMenuOpen={setMobileMenuOpen}
+                />
+              </motion.div>
+
+              <nav className="flex flex-col gap-1">
+                {[...navItems, ['My Account', '/account']].map(
+                  ([label, href], index) => (
+                    <motion.a
+                      key={href}
+                      href={href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        delay: 0.2 + index * 0.035,
+                        duration: 0.28,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className="block rounded-xl px-4 py-4 text-base font-semibold tracking-tight text-[#111111] transition-all duration-300 hover:translate-x-1 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+                    >
+                      {label}
+                    </motion.a>
+                  )
+                )}
+              </nav>
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
