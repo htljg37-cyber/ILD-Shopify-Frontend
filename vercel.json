@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/checkouts/:path*",
+      "destination": "https://il-distributions-llc.myshopify.com/checkouts/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/checkout/:path*",
+      "destination": "https://il-distributions-llc.myshopify.com/checkout/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
