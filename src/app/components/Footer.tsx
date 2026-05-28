@@ -9,8 +9,6 @@ import {
   CreditCard,
 } from 'lucide-react';
 
-import logo from '../../assets/logo.png';
-
 const shopLinks = [
   ['Catalog', '/catalog'],
   ['New Arrivals', '/new-arrivals'],
@@ -68,7 +66,7 @@ export function Footer() {
               className="group mb-6 inline-flex items-center transition-all duration-300 hover:-translate-y-0.5"
             >
               <img
-                src={logo}
+                src="/logo.png"
                 alt="IL Distributions LLC"
                 className="h-14 w-auto max-w-[240px] object-contain brightness-0 invert transition-all duration-300 group-hover:scale-[1.03] group-hover:drop-shadow-[0_8px_18px_rgba(200,164,93,0.25)]"
               />
