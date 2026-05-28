@@ -86,24 +86,27 @@ export default function CartPage() {
   }
 
   function handleCheckout() {
-  if (!cart?.checkoutUrl) {
-    alert(
-      'Checkout is not available yet. Please refresh your cart and try again.'
-    );
-    return;
+    const lines = cart?.lines?.edges || [];
+
+    if (lines.length === 0) {
+      alert('Your cart is empty.');
+      return;
+    }
+
+    const cartItems = lines
+      .map((item: any) => {
+        const variantGid = item.node.merchandise.id;
+        const variantId = variantGid.split('/').pop();
+        const quantity = item.node.quantity;
+
+        return `${variantId}:${quantity}`;
+      })
+      .join(',');
+
+    const checkoutUrl = `https://il-distributions-llc.myshopify.com/cart/${cartItems}`;
+
+    window.location.href = checkoutUrl;
   }
-
-  try {
-    const checkoutUrl = new URL(cart.checkoutUrl);
-
-    checkoutUrl.hostname = 'il-distributions-llc.myshopify.com';
-
-    window.location.href = checkoutUrl.toString();
-  } catch (error) {
-    console.error('Checkout error:', error);
-    alert('Unable to open checkout.');
-  }
-}
 
   if (loading) {
     return (
