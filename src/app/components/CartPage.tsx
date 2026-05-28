@@ -93,15 +93,7 @@ export default function CartPage() {
       return;
     }
 
-    try {
-      const checkoutUrl = new URL(cart.checkoutUrl);
-      checkoutUrl.hostname = 'il-distributions-llc.myshopify.com';
-
-      window.location.href = checkoutUrl.toString();
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Unable to open checkout. Please try again.');
-    }
+    window.location.href = cart.checkoutUrl;
   }
 
   if (loading) {
