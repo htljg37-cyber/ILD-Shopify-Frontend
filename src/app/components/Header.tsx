@@ -5,7 +5,6 @@ import { Search, User, ShoppingCart, Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { getProducts } from '../../lib/shopify';
-import logo from '../assets/logo.png';
 
 function normalizeText(text: string) {
   return text.toLowerCase().replaceAll('_', ' ').trim();
@@ -226,8 +225,8 @@ export function Header() {
               className="group flex items-center flex-shrink-0 transition-all duration-300 ease-out hover:-translate-y-0.5"
             >
               <img
-                src={logo}
-                alt="IL Distributions LLC"
+                 src="/logo.png"
+                 alt="IL Distributions LLC"
                 className="h-10 sm:h-12 lg:h-14 w-auto max-w-[230px] object-contain transition-all duration-300 ease-out group-hover:scale-[1.04] group-hover:drop-shadow-[0_8px_18px_rgba(15,90,70,0.22)]"
               />
             </a>
