@@ -233,7 +233,11 @@ export default function CartPage() {
 
               <Button
                 onClick={() => {
-                  window.location.href = cart.checkoutUrl;
+                  if (!cart?.checkoutUrl) {
+                    alert('Checkout is not available yet. Please refresh your cart and try again.');
+                    return;
+                  }
+                  window.location.assign(cart.checkoutUrl);
                 }}
                 className="h-14 w-full rounded-2xl bg-[#0F5A46] text-base text-white shadow-[0_12px_30px_rgba(15,90,70,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#126B54] hover:shadow-[0_18px_42px_rgba(15,90,70,0.38)] active:translate-y-0 active:scale-[0.98]"
               >
