@@ -30,6 +30,16 @@ export function BrandsPage() {
     return Array.from(new Set(brandTags));
   }, [products]);
 
+  function goToBrand(brand: string) {
+    window.history.pushState(
+      {},
+      '',
+      `/catalog?brand=${encodeURIComponent(brand)}`
+    );
+
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
   return (
     <section className="relative overflow-hidden py-12 md:py-20 bg-[radial-gradient(circle_at_10%_10%,rgba(15,90,70,0.07),transparent_28%),radial-gradient(circle_at_90%_20%,rgba(200,164,93,0.10),transparent_28%),linear-gradient(180deg,#FAFAFA_0%,#F6F4EF_100%)]">
       <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
@@ -91,14 +101,22 @@ export function BrandsPage() {
               const brandName = formatBrand(brand);
 
               return (
-                <motion.a
+                <motion.div
                   key={brand}
-                  href={`/catalog?search=${encodeURIComponent(brandName)}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => goToBrand(brand)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      goToBrand(brand);
+                    }
+                  }}
                   initial={{ opacity: 0, y: 18 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-80px' }}
                   transition={{ delay: index * 0.06, duration: 0.45 }}
-                  className="group relative overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 p-6 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_22px_55px_rgba(15,90,70,0.13)]"
+                  className="group relative cursor-pointer overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 p-6 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_22px_55px_rgba(15,90,70,0.13)]"
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_25%_0%,rgba(15,90,70,0.10),transparent_38%),radial-gradient(circle_at_80%_10%,rgba(200,164,93,0.16),transparent_38%)]" />
 
@@ -130,7 +148,7 @@ export function BrandsPage() {
                   </div>
 
                   <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-[#C8A45D]/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </motion.a>
+                </motion.div>
               );
             })}
           </div>

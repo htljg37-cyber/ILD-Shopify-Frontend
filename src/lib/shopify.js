@@ -38,6 +38,34 @@ async function shopifyFetch(query, variables = {}) {
   }
 }
 
+function normalizeProduct(product) {
+  if (!product) return null;
+
+  const variants =
+    product.variants?.edges?.map((edge) => ({
+      ...edge.node,
+      quantityAvailable: edge.node.quantityAvailable ?? 0,
+      isOutOfStock: !edge.node.availableForSale || (edge.node.quantityAvailable ?? 0) <= 0,
+    })) || [];
+
+  const selectedVariant = variants[0] || null;
+
+  const hasAvailableVariant = variants.some((variant) => variant.availableForSale);
+  const totalQuantityAvailable = variants.reduce(
+    (total, variant) => total + (variant.quantityAvailable || 0),
+    0
+  );
+
+  return {
+    ...product,
+    variants,
+    selectedVariant,
+    quantityAvailable: totalQuantityAvailable,
+    availableForSale: product.availableForSale && hasAvailableVariant,
+    isOutOfStock: !product.availableForSale || !hasAvailableVariant || totalQuantityAvailable <= 0,
+  };
+}
+
 const productFields = `
   id
   title
@@ -71,6 +99,7 @@ const productFields = `
         id
         title
         availableForSale
+        quantityAvailable
         price {
           amount
           currencyCode
@@ -94,7 +123,8 @@ export async function getProducts() {
   `;
 
   const data = await shopifyFetch(query);
-  return data?.products?.edges?.map((item) => item.node) || [];
+
+  return data?.products?.edges?.map((item) => normalizeProduct(item.node)) || [];
 }
 
 export async function getProductsByCollection(handle) {
@@ -119,7 +149,7 @@ export async function getProductsByCollection(handle) {
 
   return {
     collection: data?.collection || null,
-    products: data?.collection?.products?.edges?.map((item) => item.node) || [],
+    products: data?.collection?.products?.edges?.map((item) => normalizeProduct(item.node)) || [],
   };
 }
 
@@ -134,10 +164,62 @@ export async function getProductByHandle(handle) {
 
   const data = await shopifyFetch(query, { handle });
 
-  return data?.product || null;
+  return normalizeProduct(data?.product || null);
+}
+
+export async function getVariantById(variantId) {
+  const query = `
+    query getVariantById($id: ID!) {
+      node(id: $id) {
+        ... on ProductVariant {
+          id
+          title
+          availableForSale
+          quantityAvailable
+          product {
+            id
+            title
+            handle
+          }
+          price {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch(query, { id: variantId });
+  return data?.node || null;
+}
+
+async function validateVariantStock(variantId, quantity = 1) {
+  const variant = await getVariantById(variantId);
+
+  if (!variant) {
+    console.error("Variant not found.");
+    return false;
+  }
+
+  if (!variant.availableForSale || (variant.quantityAvailable ?? 0) < quantity) {
+    console.error("Product is out of stock or requested quantity is unavailable.");
+    return false;
+  }
+
+  return true;
 }
 
 export async function createCart(variantId, quantity = 1) {
+  const hasStock = await validateVariantStock(variantId, quantity);
+
+  if (!hasStock) {
+    return {
+      error: true,
+      message: "This product is currently out of stock.",
+    };
+  }
+
   const query = `
     mutation cartCreate($input: CartInput!) {
       cartCreate(input: $input) {
@@ -176,6 +258,15 @@ export async function createCart(variantId, quantity = 1) {
 }
 
 export async function addToCart(cartId, variantId, quantity = 1) {
+  const hasStock = await validateVariantStock(variantId, quantity);
+
+  if (!hasStock) {
+    return {
+      error: true,
+      message: "This product is currently out of stock.",
+    };
+  }
+
   const query = `
     mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
       cartLinesAdd(cartId: $cartId, lines: $lines) {
@@ -240,6 +331,8 @@ export async function getCart(cartId) {
                 ... on ProductVariant {
                   id
                   title
+                  availableForSale
+                  quantityAvailable
                   product {
                     title
                     handle
@@ -294,6 +387,8 @@ export async function updateCartLine(cartId, lineId, quantity) {
                   ... on ProductVariant {
                     id
                     title
+                    availableForSale
+                    quantityAvailable
                     product {
                       title
                       handle
@@ -361,6 +456,8 @@ export async function removeCartLine(cartId, lineId) {
                   ... on ProductVariant {
                     id
                     title
+                    availableForSale
+                    quantityAvailable
                     product {
                       title
                       handle

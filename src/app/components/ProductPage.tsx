@@ -7,6 +7,7 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -36,10 +37,20 @@ export function ProductPage({ handle }: { handle: string }) {
     loadProduct();
   }, [handle]);
 
+  function getVariantId() {
+    return product?.selectedVariant?.id || product?.variants?.[0]?.id || '';
+  }
+
   async function handleAddToCart() {
     if (!product) return;
 
-    const variantId = product.variants?.edges?.[0]?.node?.id;
+    const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
+    const variantId = getVariantId();
+
+    if (isOutOfStock) {
+      alert('This product is currently out of stock.');
+      return;
+    }
 
     if (!variantId) {
       alert('This product does not have an available variant.');
@@ -55,8 +66,8 @@ export function ProductPage({ handle }: { handle: string }) {
       if (!cartId) {
         const newCart = await createCart(variantId, 1);
 
-        if (!newCart) {
-          alert('Unable to create cart.');
+        if (!newCart || newCart.error) {
+          alert(newCart?.message || 'Unable to create cart.');
           setAdding(false);
           return;
         }
@@ -69,8 +80,8 @@ export function ProductPage({ handle }: { handle: string }) {
       } else {
         const updatedCart = await addToCart(cartId, variantId, 1);
 
-        if (!updatedCart) {
-          alert('Unable to add to cart.');
+        if (!updatedCart || updatedCart.error) {
+          alert(updatedCart?.message || 'Unable to add to cart.');
           setAdding(false);
           return;
         }
@@ -94,7 +105,13 @@ export function ProductPage({ handle }: { handle: string }) {
   async function handleBuyNow() {
     if (!product) return;
 
-    const variantId = product.variants?.edges?.[0]?.node?.id;
+    const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
+    const variantId = getVariantId();
+
+    if (isOutOfStock) {
+      alert('This product is currently out of stock.');
+      return;
+    }
 
     if (!variantId) {
       alert('No variant found.');
@@ -106,6 +123,11 @@ export function ProductPage({ handle }: { handle: string }) {
     const cart = await createCart(variantId, 1);
 
     setBuying(false);
+
+    if (cart?.error) {
+      alert(cart.message || 'This product is currently out of stock.');
+      return;
+    }
 
     if (cart?.checkoutUrl) {
       window.location.href = cart.checkoutUrl;
@@ -129,6 +151,7 @@ export function ProductPage({ handle }: { handle: string }) {
   const images = product.images?.edges?.map((item: any) => item.node) || [];
   const mainImage = selectedImage || product.featuredImage?.url;
   const price = product.priceRange?.minVariantPrice?.amount;
+  const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
 
   return (
     <main className="relative overflow-hidden bg-[radial-gradient(circle_at_10%_10%,rgba(15,90,70,0.07),transparent_28%),radial-gradient(circle_at_90%_20%,rgba(200,164,93,0.10),transparent_28%),linear-gradient(180deg,#FAFAFA_0%,#F6F4EF_100%)]">
@@ -140,11 +163,19 @@ export function ProductPage({ handle }: { handle: string }) {
             <div className="group relative overflow-hidden rounded-[2rem] border border-[#EAE7DF] bg-white/85 p-4 shadow-[0_18px_55px_rgba(17,17,17,0.06)] backdrop-blur-sm md:p-8">
               <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_50%_0%,rgba(200,164,93,0.14),transparent_38%)]" />
 
+              {isOutOfStock && (
+                <div className="absolute left-6 right-6 top-6 z-20 rounded-full bg-[#111111] px-5 py-3 text-center text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-[0_14px_35px_rgba(0,0,0,0.28)]">
+                  Out of Stock
+                </div>
+              )}
+
               {mainImage ? (
                 <img
                   src={mainImage}
                   alt={product.title}
-                  className="relative z-10 h-[320px] w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04] sm:h-[430px] lg:h-[560px]"
+                  className={`relative z-10 h-[320px] w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04] sm:h-[430px] lg:h-[560px] ${
+                    isOutOfStock ? 'grayscale opacity-70' : ''
+                  }`}
                 />
               ) : (
                 <div className="relative z-10 flex h-[320px] items-center justify-center text-[#717182] sm:h-[430px] lg:h-[560px]">
@@ -169,7 +200,9 @@ export function ProductPage({ handle }: { handle: string }) {
                     <img
                       src={image.url}
                       alt={image.altText || product.title}
-                      className="h-20 w-full object-contain transition-transform duration-300 group-hover:scale-105 md:h-24"
+                      className={`h-20 w-full object-contain transition-transform duration-300 group-hover:scale-105 md:h-24 ${
+                        isOutOfStock ? 'grayscale opacity-70' : ''
+                      }`}
                     />
                   </button>
                 ))}
@@ -195,34 +228,58 @@ export function ProductPage({ handle }: { handle: string }) {
                   ${price}
                 </p>
 
-                <span className="rounded-full bg-[#C8A45D]/12 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#8A6A24]">
-                  Premium Pick
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${
+                    isOutOfStock
+                      ? 'bg-[#111111]/10 text-[#111111]'
+                      : 'bg-[#C8A45D]/12 text-[#8A6A24]'
+                  }`}
+                >
+                  {isOutOfStock ? 'Out of Stock' : 'Premium Pick'}
                 </span>
               </div>
 
+              {isOutOfStock && (
+                <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm font-semibold text-red-700">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                  <span>
+                    This product is currently out of stock and cannot be added
+                    to cart or purchased at this time.
+                  </span>
+                </div>
+              )}
+
               <div
-                className="prose prose-sm max-w-none text-[#717182] prose-p:leading-relaxed prose-strong:text-[#111111] mb-8"
+                className="prose prose-sm mb-8 max-w-none text-[#717182] prose-p:leading-relaxed prose-strong:text-[#111111]"
                 dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
               />
 
               <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={adding}
-                  className="h-14 rounded-2xl bg-[#0F5A46] px-8 text-base text-white shadow-[0_12px_30px_rgba(15,90,70,0.28)] transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#126B54] hover:shadow-[0_18px_42px_rgba(15,90,70,0.38)] active:translate-y-0 active:scale-[0.98]"
+                  disabled={adding || isOutOfStock}
+                  className={`h-14 rounded-2xl px-8 text-base text-white shadow-[0_12px_30px_rgba(15,90,70,0.28)] transition-all duration-300 ease-out active:translate-y-0 active:scale-[0.98] ${
+                    isOutOfStock
+                      ? 'cursor-not-allowed bg-[#717182] hover:bg-[#717182]'
+                      : 'bg-[#0F5A46] hover:-translate-y-1 hover:bg-[#126B54] hover:shadow-[0_18px_42px_rgba(15,90,70,0.38)]'
+                  }`}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
-                  {adding ? 'Adding...' : 'Add to Cart'}
+                  {isOutOfStock ? 'Out of Stock' : adding ? 'Adding...' : 'Add to Cart'}
                 </Button>
 
                 <Button
                   onClick={handleBuyNow}
-                  disabled={buying}
+                  disabled={buying || isOutOfStock}
                   variant="outline"
-                  className="h-14 rounded-2xl border-[#0F5A46] bg-white text-base text-[#0F5A46] transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#0F5A46] hover:text-white hover:shadow-[0_18px_42px_rgba(15,90,70,0.18)] active:translate-y-0 active:scale-[0.98]"
+                  className={`h-14 rounded-2xl border-[#0F5A46] bg-white text-base transition-all duration-300 ease-out active:translate-y-0 active:scale-[0.98] ${
+                    isOutOfStock
+                      ? 'cursor-not-allowed border-[#717182] text-[#717182] hover:bg-white hover:text-[#717182]'
+                      : 'text-[#0F5A46] hover:-translate-y-1 hover:bg-[#0F5A46] hover:text-white hover:shadow-[0_18px_42px_rgba(15,90,70,0.18)]'
+                  }`}
                 >
-                  {buying ? 'Opening checkout...' : 'Buy Now'}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  {isOutOfStock ? 'Unavailable' : buying ? 'Opening checkout...' : 'Buy Now'}
+                  {!isOutOfStock && <ArrowRight className="ml-2 h-5 w-5" />}
                 </Button>
               </div>
 

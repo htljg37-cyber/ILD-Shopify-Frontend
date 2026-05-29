@@ -8,7 +8,13 @@ export function NewArrivalsPage() {
   useEffect(() => {
     async function loadProducts() {
       const data = await getProducts();
-      setProducts(data);
+
+      const normalizedProducts = data.map((product: any) => ({
+        ...product,
+        isOutOfStock: product?.isOutOfStock || !product?.availableForSale,
+      }));
+
+      setProducts(normalizedProducts);
     }
 
     loadProducts();
