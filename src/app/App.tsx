@@ -22,6 +22,7 @@ import { TermsOfServicePage } from './components/TermsOfServicePage';
 import { ShippingPolicyPage } from './components/ShippingPolicyPage';
 import { ReturnsPolicyPage } from './components/ReturnsPolicyPage';
 import { AccountPage } from './components/AccountPage';
+import { getCollections } from '../lib/shopify';
 
 const revealSection = {
   initial: { opacity: 0, y: 32, filter: 'blur(6px)' },
@@ -74,26 +75,16 @@ function HomePage() {
 }
 
 function CollectionsPage() {
-  const collections = [
-    {
-      title: 'Diecast & Model Cars',
-      description: 'Premium diecast cars, Mini GT, collectibles, and more.',
-      href: '/collections/diecast-model-cars',
-      bg: 'from-[#071611] via-[#111111] to-[#0F5A46]',
-    },
-    {
-      title: 'Collectible Figures',
-      description: 'Anime, gaming, Funko, and premium collectible figures.',
-      href: '/collections/collectible-figures',
-      bg: 'from-[#111111] via-[#171717] to-[#1B1710]',
-    },
-    {
-      title: 'Preserved Flowers & Decor',
-      description: 'Luxury preserved roses and elegant decor collections.',
-      href: '/collections/preserved-flowers-decor',
-      bg: 'from-[#0F5A46] via-[#123F34] to-[#C8A45D]',
-    },
-  ];
+  const [collections, setCollections] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadCollections() {
+      const data = await getCollections();
+      setCollections(data);
+    }
+
+    loadCollections();
+  }, []);
 
   return (
     <>
@@ -106,53 +97,109 @@ function CollectionsPage() {
         <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
 
         <div className="container relative z-10 mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
-            {collections.map((collection, index) => (
-              <motion.a
-                key={collection.href}
-                href={collection.href}
-                initial={{ opacity: 0, y: 24, filter: 'blur(5px)' }}
-                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                viewport={{ once: true, margin: '-100px' }}
-                transition={{
-                  delay: index * 0.08,
-                  duration: 0.6,
-                  ease: [0.22, 1, 0.36, 1] as const,
-                }}
-                className="group overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)]"
-              >
-                <div
-                  className={`relative flex h-72 items-center justify-center overflow-hidden bg-gradient-to-br ${collection.bg} px-6`}
-                >
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(200,164,93,0.22),transparent_35%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          {collections.length === 0 ? (
+            <div className="rounded-3xl border border-[#EAE7DF] bg-white/85 p-10 text-center shadow-sm">
+              <p className="text-sm font-semibold text-[#717182]">
+                No collections found yet.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
+              {collections.map((collection, index) => {
+                const hasImage = Boolean(collection.image?.url);
 
-                  <h2 className="relative z-10 text-center text-3xl font-extrabold tracking-tight text-white transition-transform duration-300 group-hover:scale-[1.03]">
-                    {collection.title}
-                  </h2>
-                </div>
+                return (
+                  <motion.a
+                    key={collection.id}
+                    href={`/collections/${collection.handle}`}
+                    initial={{ opacity: 0, y: 24, filter: 'blur(5px)' }}
+                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '-100px' }}
+                    transition={{
+                      delay: index * 0.08,
+                      duration: 0.6,
+                      ease: [0.22, 1, 0.36, 1] as const,
+                    }}
+                    className="group overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)]"
+                  >
+                    <div className="relative flex h-72 items-center justify-center overflow-hidden bg-gradient-to-br from-[#071611] via-[#111111] to-[#0F5A46] px-6">
+                      {hasImage ? (
+                        <>
+                          <img
+                            src={collection.image.url}
+                            alt={collection.image.altText || collection.title}
+                            className="absolute inset-0 h-full w-full object-cover opacity-50 transition-all duration-700 group-hover:scale-105 group-hover:opacity-60"
+                          />
+                          <div className="absolute inset-0 bg-black/45" />
+                        </>
+                      ) : (
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(200,164,93,0.22),transparent_35%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                      )}
 
-                <div className="p-6">
-                  <p className="text-sm leading-relaxed text-[#717182]">
-                    {collection.description}
-                  </p>
+                      <h2 className="relative z-10 text-center text-3xl font-extrabold tracking-tight text-white transition-transform duration-300 group-hover:scale-[1.03]">
+                        {collection.title}
+                      </h2>
+                    </div>
 
-                  <span className="mt-5 inline-block text-sm font-bold text-[#0F5A46] transition-all duration-300 group-hover:translate-x-1">
-                    Explore Collection →
-                  </span>
-                </div>
-              </motion.a>
-            ))}
-          </div>
+                    <div className="p-6">
+                      <p className="line-clamp-2 text-sm leading-relaxed text-[#717182]">
+                        {collection.description ||
+                          'Explore selected products from this collection.'}
+                      </p>
+
+                      <span className="mt-5 inline-block text-sm font-bold text-[#0F5A46] transition-all duration-300 group-hover:translate-x-1">
+                        Explore Collection →
+                      </span>
+                    </div>
+                  </motion.a>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
     </>
   );
 }
 
+function DynamicCollectionPage({ handle }: { handle: string }) {
+  const [collection, setCollection] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadCollection() {
+      const collections = await getCollections();
+      const foundCollection = collections.find(
+        (item: any) => item.handle === handle
+      );
+
+      setCollection(foundCollection || null);
+    }
+
+    loadCollection();
+  }, [handle]);
+
+  const title = collection?.title || handle.replaceAll('-', ' ');
+  const description =
+    collection?.description ||
+    'Explore products available in this collection.';
+
+  return (
+    <>
+      <PageHero title={title} description={description} />
+      <CollectionProducts handle={handle} />
+    </>
+  );
+}
+
 function PageRoute({ path }: { path: string }) {
   const productMatch = path.match(/^\/product\/(.+)$/);
+  const collectionMatch = path.match(/^\/collections\/(.+)$/);
 
   if (productMatch) return <ProductPage handle={productMatch[1]} />;
+  if (collectionMatch) {
+    return <DynamicCollectionPage handle={collectionMatch[1]} />;
+  }
+
   if (path === '/cart') return <CartPage />;
 
   if (path === '/account') {
@@ -192,42 +239,6 @@ function PageRoute({ path }: { path: string }) {
   }
 
   if (path === '/collections') return <CollectionsPage />;
-
-  if (path === '/collections/diecast-model-cars') {
-    return (
-      <>
-        <PageHero
-          title="Diecast & Model Cars"
-          description="Explore premium diecast cars, collectible models, and scale vehicles."
-        />
-        <CollectionProducts handle="diecast-model-cars" />
-      </>
-    );
-  }
-
-  if (path === '/collections/collectible-figures') {
-    return (
-      <>
-        <PageHero
-          title="Collectible Figures"
-          description="Shop collectible figures, anime pieces, gaming figures, and premium character collectibles."
-        />
-        <CollectionProducts handle="collectible-figures" />
-      </>
-    );
-  }
-
-  if (path === '/collections/preserved-flowers-decor') {
-    return (
-      <>
-        <PageHero
-          title="Preserved Flowers & Decor"
-          description="Discover preserved roses, luxury floral arrangements, and elegant decorative pieces."
-        />
-        <CollectionProducts handle="preserved-flowers-decor" />
-      </>
-    );
-  }
 
   if (path === '/brands') {
     return (
@@ -353,8 +364,6 @@ export default function App() {
               <p className="relative text-sm font-bold tracking-[0.28em] text-white/85">
                 IL DISTRIBUTIONS
               </p>
-
-              
             </div>
           </motion.div>
         )}

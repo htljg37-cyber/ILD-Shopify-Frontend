@@ -45,12 +45,14 @@ function normalizeProduct(product) {
     product.variants?.edges?.map((edge) => ({
       ...edge.node,
       quantityAvailable: edge.node.quantityAvailable ?? 0,
-      isOutOfStock: !edge.node.availableForSale || (edge.node.quantityAvailable ?? 0) <= 0,
+      isOutOfStock:
+        !edge.node.availableForSale || (edge.node.quantityAvailable ?? 0) <= 0,
     })) || [];
 
   const selectedVariant = variants[0] || null;
 
   const hasAvailableVariant = variants.some((variant) => variant.availableForSale);
+
   const totalQuantityAvailable = variants.reduce(
     (total, variant) => total + (variant.quantityAvailable || 0),
     0
@@ -62,7 +64,20 @@ function normalizeProduct(product) {
     selectedVariant,
     quantityAvailable: totalQuantityAvailable,
     availableForSale: product.availableForSale && hasAvailableVariant,
-    isOutOfStock: !product.availableForSale || !hasAvailableVariant || totalQuantityAvailable <= 0,
+    isOutOfStock:
+      !product.availableForSale ||
+      !hasAvailableVariant ||
+      totalQuantityAvailable <= 0,
+  };
+}
+
+function normalizeCollection(collection) {
+  if (!collection) return null;
+
+  return {
+    ...collection,
+    image: collection.image || null,
+    productCount: collection.products?.edges?.length || 0,
   };
 }
 
@@ -93,6 +108,12 @@ const productFields = `
       currencyCode
     }
   }
+  compareAtPriceRange {
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
   variants(first: 10) {
     edges {
       node {
@@ -104,6 +125,28 @@ const productFields = `
           amount
           currencyCode
         }
+        compareAtPrice {
+          amount
+          currencyCode
+        }
+      }
+    }
+  }
+`;
+
+const collectionFields = `
+  id
+  title
+  handle
+  description
+  image {
+    url
+    altText
+  }
+  products(first: 1) {
+    edges {
+      node {
+        id
       }
     }
   }
@@ -125,6 +168,28 @@ export async function getProducts() {
   const data = await shopifyFetch(query);
 
   return data?.products?.edges?.map((item) => normalizeProduct(item.node)) || [];
+}
+
+export async function getCollections() {
+  const query = `
+    {
+      collections(first: 50) {
+        edges {
+          node {
+            ${collectionFields}
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch(query);
+
+  return (
+    data?.collections?.edges
+      ?.map((item) => normalizeCollection(item.node))
+      ?.filter((collection) => collection && collection.handle !== "frontpage") || []
+  );
 }
 
 export async function getProductsByCollection(handle) {
@@ -149,7 +214,10 @@ export async function getProductsByCollection(handle) {
 
   return {
     collection: data?.collection || null,
-    products: data?.collection?.products?.edges?.map((item) => normalizeProduct(item.node)) || [],
+    products:
+      data?.collection?.products?.edges?.map((item) =>
+        normalizeProduct(item.node)
+      ) || [],
   };
 }
 
@@ -182,6 +250,10 @@ export async function getVariantById(variantId) {
             handle
           }
           price {
+            amount
+            currencyCode
+          }
+          compareAtPrice {
             amount
             currencyCode
           }
@@ -344,6 +416,10 @@ export async function getCart(cartId) {
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                 }
               }
             }
@@ -397,6 +473,10 @@ export async function updateCartLine(cartId, lineId, quantity) {
                       }
                     }
                     price {
+                      amount
+                      currencyCode
+                    }
+                    compareAtPrice {
                       amount
                       currencyCode
                     }
@@ -466,6 +546,10 @@ export async function removeCartLine(cartId, lineId) {
                       }
                     }
                     price {
+                      amount
+                      currencyCode
+                    }
+                    compareAtPrice {
                       amount
                       currencyCode
                     }

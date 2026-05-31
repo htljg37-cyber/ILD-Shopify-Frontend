@@ -16,6 +16,50 @@ import {
   addToCart,
 } from '../../lib/shopify';
 
+function formatMoney(amount: number) {
+  return `$${amount.toFixed(2)}`;
+}
+
+function getShippingLabel(product: any) {
+  const tags = product?.tags || [];
+
+  if (tags.includes('shipping_free')) {
+    return 'Free Shipping';
+  }
+
+  const usFlatRateTag = tags.find((tag: string) =>
+    tag.startsWith('shipping_us_')
+  );
+
+  if (usFlatRateTag) {
+    const rawAmount = usFlatRateTag.replace('shipping_us_', '');
+    const amount = Number(rawAmount) / 100;
+
+    if (!Number.isNaN(amount)) {
+      return `${formatMoney(amount)} shipping across the U.S.`;
+    }
+  }
+
+  const shippingFromTag = tags.find((tag: string) =>
+    tag.startsWith('shipping_from_')
+  );
+
+  if (shippingFromTag) {
+    const rawAmount = shippingFromTag.replace('shipping_from_', '');
+    const amount = Number(rawAmount) / 100;
+
+    if (!Number.isNaN(amount)) {
+      return `Shipping from ${formatMoney(amount)}`;
+    }
+  }
+
+  if (tags.includes('shipping_calculated')) {
+    return 'Shipping calculated at checkout';
+  }
+
+  return 'Shipping calculated at checkout';
+}
+
 export function ProductPage({ handle }: { handle: string }) {
   const [product, setProduct] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
@@ -150,7 +194,32 @@ export function ProductPage({ handle }: { handle: string }) {
 
   const images = product.images?.edges?.map((item: any) => item.node) || [];
   const mainImage = selectedImage || product.featuredImage?.url;
-  const price = product.priceRange?.minVariantPrice?.amount;
+
+  const selectedVariant = product?.selectedVariant || product?.variants?.[0];
+
+  const priceAmount =
+    selectedVariant?.price?.amount ||
+    product.priceRange?.minVariantPrice?.amount ||
+    '0';
+
+  const compareAtPriceAmount =
+    selectedVariant?.compareAtPrice?.amount ||
+    product.compareAtPriceRange?.minVariantPrice?.amount ||
+    null;
+
+  const price = Number(priceAmount);
+  const compareAtPrice = compareAtPriceAmount ? Number(compareAtPriceAmount) : 0;
+
+  const hasCompareAtPrice =
+    compareAtPriceAmount !== null &&
+    !Number.isNaN(compareAtPrice) &&
+    compareAtPrice > price;
+
+  const discountPercent = hasCompareAtPrice
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+    : 0;
+
+  const shippingLabel = getShippingLabel(product);
   const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
 
   return (
@@ -223,10 +292,22 @@ export function ProductPage({ handle }: { handle: string }) {
                 {product.title}
               </h1>
 
-              <div className="mb-6 flex flex-wrap items-center gap-3">
+              <div className="mb-3 flex flex-wrap items-center gap-3">
                 <p className="text-3xl font-extrabold text-[#111111] md:text-4xl">
-                  ${price}
+                  ${price.toFixed(2)}
                 </p>
+
+                {hasCompareAtPrice && (
+                  <p className="text-xl font-bold text-[#9CA3AF] line-through md:text-2xl">
+                    ${compareAtPrice.toFixed(2)}
+                  </p>
+                )}
+
+                {hasCompareAtPrice && (
+                  <span className="rounded-full bg-[#0F5A46]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#0F5A46]">
+                    Save {discountPercent}%
+                  </span>
+                )}
 
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${
@@ -237,6 +318,11 @@ export function ProductPage({ handle }: { handle: string }) {
                 >
                   {isOutOfStock ? 'Out of Stock' : 'Premium Pick'}
                 </span>
+              </div>
+
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#0F5A46]/8 px-4 py-2 text-sm font-bold text-[#0F5A46]">
+                <Truck className="h-4 w-4" />
+                {shippingLabel}
               </div>
 
               {isOutOfStock && (
@@ -265,7 +351,11 @@ export function ProductPage({ handle }: { handle: string }) {
                   }`}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
-                  {isOutOfStock ? 'Out of Stock' : adding ? 'Adding...' : 'Add to Cart'}
+                  {isOutOfStock
+                    ? 'Out of Stock'
+                    : adding
+                      ? 'Adding...'
+                      : 'Add to Cart'}
                 </Button>
 
                 <Button
@@ -278,7 +368,11 @@ export function ProductPage({ handle }: { handle: string }) {
                       : 'text-[#0F5A46] hover:-translate-y-1 hover:bg-[#0F5A46] hover:text-white hover:shadow-[0_18px_42px_rgba(15,90,70,0.18)]'
                   }`}
                 >
-                  {isOutOfStock ? 'Unavailable' : buying ? 'Opening checkout...' : 'Buy Now'}
+                  {isOutOfStock
+                    ? 'Unavailable'
+                    : buying
+                      ? 'Opening checkout...'
+                      : 'Buy Now'}
                   {!isOutOfStock && <ArrowRight className="ml-2 h-5 w-5" />}
                 </Button>
               </div>

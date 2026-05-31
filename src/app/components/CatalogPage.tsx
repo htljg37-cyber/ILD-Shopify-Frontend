@@ -8,6 +8,7 @@ import {
   Star,
   ChevronDown,
   Check,
+  Truck,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { getProducts, createCart, addToCart } from '../../lib/shopify';
@@ -31,6 +32,83 @@ const sortOptions = [
 
 const productsPerPage = 12;
 
+function formatMoney(amount: number) {
+  return `$${amount.toFixed(2)}`;
+}
+
+function getPriceInfo(product: any) {
+  const selectedVariant = product?.selectedVariant || product?.variants?.[0];
+
+  const priceAmount =
+    selectedVariant?.price?.amount ||
+    product?.priceRange?.minVariantPrice?.amount ||
+    '0';
+
+  const compareAtPriceAmount =
+    selectedVariant?.compareAtPrice?.amount ||
+    product?.compareAtPriceRange?.minVariantPrice?.amount ||
+    null;
+
+  const price = Number(priceAmount);
+  const compareAtPrice = compareAtPriceAmount ? Number(compareAtPriceAmount) : 0;
+
+  const hasCompareAtPrice =
+    compareAtPriceAmount !== null &&
+    !Number.isNaN(compareAtPrice) &&
+    compareAtPrice > price;
+
+  const discountPercent = hasCompareAtPrice
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+    : 0;
+
+  return {
+    price,
+    compareAtPrice,
+    hasCompareAtPrice,
+    discountPercent,
+  };
+}
+
+function getShippingLabel(product: any) {
+  const tags = product?.tags || [];
+
+  if (tags.includes('shipping_free')) {
+    return 'Free Shipping';
+  }
+
+  const usFlatRateTag = tags.find((tag: string) =>
+    tag.startsWith('shipping_us_')
+  );
+
+  if (usFlatRateTag) {
+    const rawAmount = usFlatRateTag.replace('shipping_us_', '');
+    const amount = Number(rawAmount) / 100;
+
+    if (!Number.isNaN(amount)) {
+      return `${formatMoney(amount)} shipping across the U.S.`;
+    }
+  }
+
+  const shippingFromTag = tags.find((tag: string) =>
+    tag.startsWith('shipping_from_')
+  );
+
+  if (shippingFromTag) {
+    const rawAmount = shippingFromTag.replace('shipping_from_', '');
+    const amount = Number(rawAmount) / 100;
+
+    if (!Number.isNaN(amount)) {
+      return `Shipping from ${formatMoney(amount)}`;
+    }
+  }
+
+  if (tags.includes('shipping_calculated')) {
+    return 'Shipping calculated at checkout';
+  }
+
+  return 'Shipping calculated at checkout';
+}
+
 function formatTag(tag: string, prefix: string) {
   return tag
     .replace(prefix, '')
@@ -47,6 +125,23 @@ function formatBrandName(tag: string) {
 
 function normalizeText(text = '') {
   return text.toLowerCase().replaceAll('_', ' ').trim();
+}
+
+function productMatchesSearchAndBrand(product: any, searchQuery: string, brandFilter: string) {
+  const tags = (product.tags || []) as string[];
+  const productTitle = normalizeText(product.title || '');
+  const tagText = normalizeText(tags.join(' '));
+  const query = normalizeText(searchQuery);
+
+  const matchesBrand = !brandFilter || tags.includes(brandFilter);
+
+  const matchesSearch =
+    !query ||
+    productTitle.includes(query) ||
+    tagText.includes(query) ||
+    query.split(' ').some((word) => productTitle.includes(word) || tagText.includes(word));
+
+  return matchesBrand && matchesSearch;
 }
 
 type CatalogPageProps = {
@@ -190,11 +285,50 @@ export function CatalogPage({
     loadProducts();
   }, [customProducts]);
 
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const tags = (product.tags || []) as string[];
+
+      const matchesSearchAndBrand = productMatchesSearchAndBrand(
+        product,
+        searchQuery,
+        brandFilter
+      );
+
+      const matchesFilters = Object.values(selectedFilters).every((selectedTag) => {
+        if (!selectedTag) return true;
+        return tags.includes(selectedTag);
+      });
+
+      return matchesSearchAndBrand && matchesFilters;
+    });
+  }, [products, searchQuery, brandFilter, selectedFilters]);
+
   const availableFilters = useMemo(() => {
     return filterGroups.map((group) => {
+      const productsForThisGroup = products.filter((product) => {
+        const tags = (product.tags || []) as string[];
+
+        const matchesSearchAndBrand = productMatchesSearchAndBrand(
+          product,
+          searchQuery,
+          brandFilter
+        );
+
+        const matchesOtherFilters = Object.entries(selectedFilters).every(
+          ([prefix, selectedTag]) => {
+            if (!selectedTag) return true;
+            if (prefix === group.prefix) return true;
+            return tags.includes(selectedTag);
+          }
+        );
+
+        return matchesSearchAndBrand && matchesOtherFilters;
+      });
+
       const options = Array.from(
         new Set(
-          products
+          productsForThisGroup
             .flatMap((product) => (product.tags || []) as string[])
             .filter((tag) => tag.startsWith(group.prefix))
         )
@@ -202,31 +336,25 @@ export function CatalogPage({
 
       return { ...group, options };
     });
-  }, [products]);
+  }, [products, searchQuery, brandFilter, selectedFilters]);
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const tags = (product.tags || []) as string[];
-      const productTitle = normalizeText(product.title || '');
-      const tagText = normalizeText(tags.join(' '));
-      const query = normalizeText(searchQuery);
+  useEffect(() => {
+    setSelectedFilters((current) => {
+      let changed = false;
+      const nextFilters = { ...current };
 
-      const matchesBrand = !brandFilter || tags.includes(brandFilter);
+      availableFilters.forEach((group) => {
+        const currentValue = nextFilters[group.prefix];
 
-      const matchesSearch =
-        !query ||
-        productTitle.includes(query) ||
-        tagText.includes(query) ||
-        query.split(' ').some((word) => productTitle.includes(word) || tagText.includes(word));
-
-      const matchesFilters = Object.values(selectedFilters).every((selectedTag) => {
-        if (!selectedTag) return true;
-        return tags.includes(selectedTag);
+        if (currentValue && !group.options.includes(currentValue)) {
+          nextFilters[group.prefix] = '';
+          changed = true;
+        }
       });
 
-      return matchesBrand && matchesSearch && matchesFilters;
+      return changed ? nextFilters : current;
     });
-  }, [products, searchQuery, brandFilter, selectedFilters]);
+  }, [availableFilters]);
 
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
@@ -514,6 +642,13 @@ export function CatalogPage({
             <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
               {paginatedProducts.map((product) => {
                 const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
+                const {
+                  price,
+                  compareAtPrice,
+                  hasCompareAtPrice,
+                  discountPercent,
+                } = getPriceInfo(product);
+                const shippingLabel = getShippingLabel(product);
 
                 return (
                   <a
@@ -550,6 +685,12 @@ export function CatalogPage({
                         <div className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-[#0F5A46] px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_20px_rgba(15,90,70,0.25)]">
                           <Star className="h-3.5 w-3.5 fill-[#C8A45D] text-[#C8A45D]" />
                           Featured
+                        </div>
+                      )}
+
+                      {hasCompareAtPrice && !isOutOfStock && (
+                        <div className="absolute top-4 right-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-[0_8px_20px_rgba(200,164,93,0.28)]">
+                          Save {discountPercent}%
                         </div>
                       )}
 
@@ -597,10 +738,23 @@ export function CatalogPage({
                         {product.title}
                       </h3>
 
-                      <div className="flex items-end justify-between gap-3">
+                      <div className="mb-3 flex flex-wrap items-end gap-2">
                         <p className="text-2xl font-extrabold text-[#111111]">
-                          ${product.priceRange?.minVariantPrice?.amount}
+                          ${price.toFixed(2)}
                         </p>
+
+                        {hasCompareAtPrice && (
+                          <p className="text-sm font-bold text-[#9CA3AF] line-through">
+                            ${compareAtPrice.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0F5A46]/8 px-3 py-1 text-xs font-bold text-[#0F5A46]">
+                          <Truck className="h-3.5 w-3.5" />
+                          {shippingLabel}
+                        </span>
 
                         <span className="text-xs font-bold text-[#717182] transition-colors duration-300 group-hover:text-[#C8A45D]">
                           {isOutOfStock ? 'Unavailable' : 'View Details'}

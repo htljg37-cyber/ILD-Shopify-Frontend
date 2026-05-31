@@ -1,11 +1,94 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Star, ShoppingCart, ArrowRight, Sparkles } from 'lucide-react';
+import {
+  Star,
+  ShoppingCart,
+  ArrowRight,
+  Sparkles,
+  Truck,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { getProducts, createCart, addToCart } from '../../lib/shopify';
 
 const premiumHover =
   'transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)] active:translate-y-0';
+
+function formatMoney(amount: number) {
+  return `$${amount.toFixed(2)}`;
+}
+
+function getPriceInfo(product: any) {
+  const selectedVariant = product?.selectedVariant || product?.variants?.[0];
+
+  const priceAmount =
+    selectedVariant?.price?.amount ||
+    product?.priceRange?.minVariantPrice?.amount ||
+    '0';
+
+  const compareAtPriceAmount =
+    selectedVariant?.compareAtPrice?.amount ||
+    product?.compareAtPriceRange?.minVariantPrice?.amount ||
+    null;
+
+  const price = Number(priceAmount);
+  const compareAtPrice = compareAtPriceAmount ? Number(compareAtPriceAmount) : 0;
+
+  const hasCompareAtPrice =
+    compareAtPriceAmount !== null &&
+    !Number.isNaN(compareAtPrice) &&
+    compareAtPrice > price;
+
+  const discountPercent = hasCompareAtPrice
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+    : 0;
+
+  return {
+    price,
+    compareAtPrice,
+    hasCompareAtPrice,
+    discountPercent,
+  };
+}
+
+function getShippingLabel(product: any) {
+  const tags = product?.tags || [];
+
+  if (tags.includes('shipping_free')) {
+    return 'Free Shipping';
+  }
+
+  const usFlatRateTag = tags.find((tag: string) =>
+    tag.startsWith('shipping_us_')
+  );
+
+  if (usFlatRateTag) {
+    const rawAmount = usFlatRateTag.replace('shipping_us_', '');
+    const amount = Number(rawAmount) / 100;
+
+    if (!Number.isNaN(amount)) {
+      return `${formatMoney(amount)} shipping across the U.S.`;
+    }
+  }
+
+  const shippingFromTag = tags.find((tag: string) =>
+    tag.startsWith('shipping_from_')
+  );
+
+  if (shippingFromTag) {
+    const rawAmount = shippingFromTag.replace('shipping_from_', '');
+    const amount = Number(rawAmount) / 100;
+
+    if (!Number.isNaN(amount)) {
+      return `Shipping from ${formatMoney(amount)}`;
+    }
+  }
+
+  if (tags.includes('shipping_calculated')) {
+    return 'Shipping calculated at checkout';
+  }
+
+  return 'Shipping calculated at checkout';
+}
 
 export function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
@@ -142,6 +225,15 @@ export function FeaturedProducts() {
               const isOutOfStock =
                 product?.isOutOfStock || !product?.availableForSale;
 
+              const {
+                price,
+                compareAtPrice,
+                hasCompareAtPrice,
+                discountPercent,
+              } = getPriceInfo(product);
+
+              const shippingLabel = getShippingLabel(product);
+
               return (
                 <motion.a
                   href={`/product/${product.handle}`}
@@ -184,6 +276,12 @@ export function FeaturedProducts() {
                       </div>
                     )}
 
+                    {hasCompareAtPrice && !isOutOfStock && (
+                      <div className="absolute top-4 right-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-[0_8px_20px_rgba(200,164,93,0.28)]">
+                        Save {discountPercent}%
+                      </div>
+                    )}
+
                     <div className="absolute inset-x-4 bottom-4 translate-y-4 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100">
                       <Button
                         type="button"
@@ -221,9 +319,22 @@ export function FeaturedProducts() {
                       {product.title}
                     </h3>
 
-                    <div className="flex items-end justify-between gap-3">
+                    <div className="mb-3 flex flex-wrap items-end gap-2">
                       <span className="text-2xl font-extrabold text-[#111111]">
-                        ${product.priceRange?.minVariantPrice?.amount}
+                        ${price.toFixed(2)}
+                      </span>
+
+                      {hasCompareAtPrice && (
+                        <span className="text-sm font-bold text-[#9CA3AF] line-through">
+                          ${compareAtPrice.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0F5A46]/8 px-3 py-1 text-xs font-bold text-[#0F5A46]">
+                        <Truck className="h-3.5 w-3.5" />
+                        {shippingLabel}
                       </span>
 
                       <span className="text-xs font-semibold text-[#717182] group-hover:text-[#C8A45D] transition-colors">
