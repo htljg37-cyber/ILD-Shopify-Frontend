@@ -6,10 +6,7 @@ import {
   createCart,
   addToCart,
 } from '../../lib/shopify';
-
-function formatMoney(amount: number) {
-  return `$${amount.toFixed(2)}`;
-}
+import { getShippingLabel } from '../../lib/shipping';
 
 function getPriceInfo(product: any) {
   const selectedVariant = product?.selectedVariant || product?.variants?.[0];
@@ -44,49 +41,9 @@ function getPriceInfo(product: any) {
   };
 }
 
-function getShippingLabel(product: any) {
-  const tags = product?.tags || [];
-
-  if (tags.includes('shipping_free')) {
-    return 'Free Shipping';
-  }
-
-  const usFlatRateTag = tags.find((tag: string) =>
-    tag.startsWith('shipping_us_')
-  );
-
-  if (usFlatRateTag) {
-    const rawAmount = usFlatRateTag.replace('shipping_us_', '');
-    const amount = Number(rawAmount) / 100;
-
-    if (!Number.isNaN(amount)) {
-      return `${formatMoney(amount)} shipping across the U.S.`;
-    }
-  }
-
-  const shippingFromTag = tags.find((tag: string) =>
-    tag.startsWith('shipping_from_')
-  );
-
-  if (shippingFromTag) {
-    const rawAmount = shippingFromTag.replace('shipping_from_', '');
-    const amount = Number(rawAmount) / 100;
-
-    if (!Number.isNaN(amount)) {
-      return `Shipping from ${formatMoney(amount)}`;
-    }
-  }
-
-  if (tags.includes('shipping_calculated')) {
-    return 'Shipping calculated at checkout';
-  }
-
-  return 'Shipping calculated at checkout';
-}
-
 export function CollectionProducts({ handle }: { handle: string }) {
   const [products, setProducts] = useState<any[]>([]);
-  const [addingId, setAddingId] = useState<string>('');
+  const [addingId, setAddingId] = useState('');
 
   useEffect(() => {
     async function loadProducts() {
@@ -114,7 +71,7 @@ export function CollectionProducts({ handle }: { handle: string }) {
     setAddingId(product.id);
 
     try {
-      let cartId = localStorage.getItem('shopify_cart_id');
+      const cartId = localStorage.getItem('shopify_cart_id');
 
       if (!cartId) {
         const newCart = await createCart(variantId, 1);
@@ -166,7 +123,7 @@ export function CollectionProducts({ handle }: { handle: string }) {
 
   return (
     <section className="container mx-auto px-6 py-16">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {products.map((product) => {
           const isOutOfStock =
             product?.isOutOfStock || !product?.availableForSale;
@@ -184,18 +141,18 @@ export function CollectionProducts({ handle }: { handle: string }) {
             <a
               href={`/product/${product.handle}`}
               key={product.id}
-              className={`block bg-white rounded-2xl overflow-hidden shadow-sm transition-all ${
+              className={`group block overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white shadow-sm transition-all duration-300 ${
                 isOutOfStock
                   ? 'opacity-80'
-                  : 'hover:shadow-xl hover:-translate-y-1'
+                  : 'hover:-translate-y-1 hover:shadow-xl'
               }`}
             >
-              <div className="relative h-72 bg-[#F5F5F5] overflow-hidden">
+              <div className="relative h-72 overflow-hidden bg-[#F5F5F5]">
                 {product.featuredImage?.url ? (
                   <img
                     src={product.featuredImage.url}
                     alt={product.title}
-                    className={`w-full h-full object-contain p-4 transition-all duration-300 ${
+                    className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${
                       isOutOfStock ? 'grayscale opacity-70' : ''
                     }`}
                   />
@@ -206,13 +163,13 @@ export function CollectionProducts({ handle }: { handle: string }) {
                 )}
 
                 {isOutOfStock && (
-                  <div className="absolute top-4 left-4 right-4 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
+                  <div className="absolute left-4 right-4 top-4 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
                     Out of Stock
                   </div>
                 )}
 
                 {hasCompareAtPrice && !isOutOfStock && (
-                  <div className="absolute top-4 right-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-[0_8px_20px_rgba(200,164,93,0.28)]">
+                  <div className="absolute right-4 top-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-[0_8px_20px_rgba(200,164,93,0.28)]">
                     Save {discountPercent}%
                   </div>
                 )}
@@ -231,7 +188,7 @@ export function CollectionProducts({ handle }: { handle: string }) {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-semibold text-[#111111] mb-3 line-clamp-2">
+                <h3 className="mb-3 line-clamp-2 text-lg font-semibold text-[#111111]">
                   {product.title}
                 </h3>
 
