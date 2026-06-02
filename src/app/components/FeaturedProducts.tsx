@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { getProducts, createCart, addToCart } from '../../lib/shopify';
+import { getShippingLabel } from '../../lib/shipping';
 
 const premiumHover =
   'transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)] active:translate-y-0';
@@ -48,46 +49,6 @@ function getPriceInfo(product: any) {
     hasCompareAtPrice,
     discountPercent,
   };
-}
-
-function getShippingLabel(product: any) {
-  const tags = product?.tags || [];
-
-  if (tags.includes('shipping_free')) {
-    return 'Free Shipping';
-  }
-
-  const usFlatRateTag = tags.find((tag: string) =>
-    tag.startsWith('shipping_us_')
-  );
-
-  if (usFlatRateTag) {
-    const rawAmount = usFlatRateTag.replace('shipping_us_', '');
-    const amount = Number(rawAmount) / 100;
-
-    if (!Number.isNaN(amount)) {
-      return `${formatMoney(amount)} shipping across the U.S.`;
-    }
-  }
-
-  const shippingFromTag = tags.find((tag: string) =>
-    tag.startsWith('shipping_from_')
-  );
-
-  if (shippingFromTag) {
-    const rawAmount = shippingFromTag.replace('shipping_from_', '');
-    const amount = Number(rawAmount) / 100;
-
-    if (!Number.isNaN(amount)) {
-      return `Shipping from ${formatMoney(amount)}`;
-    }
-  }
-
-  if (tags.includes('shipping_calculated')) {
-    return 'Shipping calculated at checkout';
-  }
-
-  return 'Shipping calculated at checkout';
 }
 
 export function FeaturedProducts() {

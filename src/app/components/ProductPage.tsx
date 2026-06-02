@@ -10,59 +10,22 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import {
-  getProductByHandle,
-  createCart,
-  addToCart,
-} from '../../lib/shopify';
+import { getProductByHandle, createCart, addToCart } from '../../lib/shopify';
+import { getShippingLabel } from '../../lib/shipping';
 
-function formatMoney(amount: number) {
-  return `$${amount.toFixed(2)}`;
-}
-
-function getShippingLabel(product: any) {
-  const tags = product?.tags || [];
-
-  if (tags.includes('shipping_free')) {
-    return 'Free Shipping';
-  }
-
-  const usFlatRateTag = tags.find((tag: string) =>
-    tag.startsWith('shipping_us_')
-  );
-
-  if (usFlatRateTag) {
-    const rawAmount = usFlatRateTag.replace('shipping_us_', '');
-    const amount = Number(rawAmount) / 100;
-
-    if (!Number.isNaN(amount)) {
-      return `${formatMoney(amount)} shipping across the U.S.`;
-    }
-  }
-
-  const shippingFromTag = tags.find((tag: string) =>
-    tag.startsWith('shipping_from_')
-  );
-
-  if (shippingFromTag) {
-    const rawAmount = shippingFromTag.replace('shipping_from_', '');
-    const amount = Number(rawAmount) / 100;
-
-    if (!Number.isNaN(amount)) {
-      return `Shipping from ${formatMoney(amount)}`;
-    }
-  }
-
-  if (tags.includes('shipping_calculated')) {
-    return 'Shipping calculated at checkout';
-  }
-
-  return 'Shipping calculated at checkout';
-}
+const LOCAL_DELIVERY_ZIPS = [
+  '92399',
+  '92320',
+  '92373',
+  '92374',
+  '92223',
+  '92555',
+  '92557',
+];
 
 export function ProductPage({ handle }: { handle: string }) {
   const [product, setProduct] = useState<any>(null);
-  const [selectedImage, setSelectedImage] = useState<string>('');
+  const [selectedImage, setSelectedImage] = useState('');
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
   const [addedMessage, setAddedMessage] = useState('');
@@ -105,7 +68,7 @@ export function ProductPage({ handle }: { handle: string }) {
     setAddedMessage('');
 
     try {
-      let cartId = localStorage.getItem('shopify_cart_id');
+      const cartId = localStorage.getItem('shopify_cart_id');
 
       if (!cartId) {
         const newCart = await createCart(variantId, 1);
@@ -197,17 +160,17 @@ export function ProductPage({ handle }: { handle: string }) {
 
   const selectedVariant = product?.selectedVariant || product?.variants?.[0];
 
-  const priceAmount =
+  const price = Number(
     selectedVariant?.price?.amount ||
-    product.priceRange?.minVariantPrice?.amount ||
-    '0';
+      product.priceRange?.minVariantPrice?.amount ||
+      0
+  );
 
   const compareAtPriceAmount =
     selectedVariant?.compareAtPrice?.amount ||
     product.compareAtPriceRange?.minVariantPrice?.amount ||
     null;
 
-  const price = Number(priceAmount);
   const compareAtPrice = compareAtPriceAmount ? Number(compareAtPriceAmount) : 0;
 
   const hasCompareAtPrice =
@@ -222,6 +185,13 @@ export function ProductPage({ handle }: { handle: string }) {
   const shippingLabel = getShippingLabel(product);
   const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
 
+  const tags = product?.tags || [];
+
+  const hasLocalDelivery =
+    tags.includes('shipping_local') ||
+    tags.includes('shipping_local_free') ||
+    tags.some((tag: string) => tag.startsWith('shipping_local_'));
+
   return (
     <main className="relative overflow-hidden bg-[radial-gradient(circle_at_10%_10%,rgba(15,90,70,0.07),transparent_28%),radial-gradient(circle_at_90%_20%,rgba(200,164,93,0.10),transparent_28%),linear-gradient(180deg,#FAFAFA_0%,#F6F4EF_100%)]">
       <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
@@ -230,8 +200,6 @@ export function ProductPage({ handle }: { handle: string }) {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
           <div>
             <div className="group relative overflow-hidden rounded-[2rem] border border-[#EAE7DF] bg-white/85 p-4 shadow-[0_18px_55px_rgba(17,17,17,0.06)] backdrop-blur-sm md:p-8">
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_50%_0%,rgba(200,164,93,0.14),transparent_38%)]" />
-
               {isOutOfStock && (
                 <div className="absolute left-6 right-6 top-6 z-20 rounded-full bg-[#111111] px-5 py-3 text-center text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-[0_14px_35px_rgba(0,0,0,0.28)]">
                   Out of Stock
@@ -325,6 +293,30 @@ export function ProductPage({ handle }: { handle: string }) {
                 {shippingLabel}
               </div>
 
+              {hasLocalDelivery && (
+                <div className="mb-6 rounded-2xl border border-[#0F5A46]/20 bg-[#0F5A46]/5 p-5">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Truck className="h-5 w-5 text-[#0F5A46]" />
+                    <h3 className="font-bold text-[#0F5A46]">
+                      Local Delivery Only
+                    </h3>
+                  </div>
+
+                  <p className="mb-2 text-sm font-semibold text-[#111111]">
+                    Available ZIP codes:
+                  </p>
+
+                  <p className="mb-4 text-sm text-[#111111]">
+                    {LOCAL_DELIVERY_ZIPS.join(', ')}
+                  </p>
+
+                  <p className="text-sm text-[#717182]">
+                    If your ZIP code is not listed, please contact us before
+                    placing your order.
+                  </p>
+                </div>
+              )}
+
               {isOutOfStock && (
                 <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm font-semibold text-red-700">
                   <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -394,7 +386,7 @@ export function ProductPage({ handle }: { handle: string }) {
                     key={label as string}
                     className="group rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(15,90,70,0.10)]"
                   >
-                    <Icon className="mb-3 h-6 w-6 text-[#0F5A46] transition-transform duration-300 group-hover:scale-110" />
+                    <Icon className="mb-3 h-6 w-6 text-[#0F5A46]" />
                     <p className="text-sm font-bold text-[#111111]">
                       {label as string}
                     </p>
