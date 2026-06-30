@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 
-const shopifyAccountUrl = 'https://account.ildistributions.com/profile';
+const shopifyAuthLoginUrl = '/api/auth/login';
 
 export function AccountPage() {
   return (
@@ -62,14 +62,14 @@ export function AccountPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-4">
-                <a href={shopifyAccountUrl}>
+                <a href={shopifyAuthLoginUrl}>
                   <Button className="h-13 w-full rounded-xl bg-[#0F5A46] text-white shadow-[0_12px_28px_rgba(15,90,70,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0F5A46]/90">
                     <LogIn className="mr-2 h-4 w-4" />
                     Sign In
                   </Button>
                 </a>
 
-                <a href={shopifyAccountUrl}>
+                <a href={shopifyAuthLoginUrl}>
                   <Button
                     variant="outline"
                     className="h-13 w-full rounded-xl border-[#EAE7DF] bg-white text-[#111111] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0F5A46]/25 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
