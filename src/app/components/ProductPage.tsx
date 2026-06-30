@@ -24,12 +24,15 @@ const LOCAL_DELIVERY_ZIPS = [
   '92557',
 ];
 
+const authLoginUrl = 'https://www.ildistributions.com/api/auth/login';
+
 export function ProductPage({ handle }: { handle: string }) {
   const [product, setProduct] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState('');
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
   const [addedMessage, setAddedMessage] = useState('');
+  const [wishlistMessage, setWishlistMessage] = useState('');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
@@ -42,95 +45,114 @@ export function ProductPage({ handle }: { handle: string }) {
         data?.images?.edges?.[0]?.node?.url || data?.featuredImage?.url || '';
 
       setSelectedImage(firstImage);
+      setAddedMessage('');
+      setWishlistMessage('');
+      setIsWishlisted(false);
     }
 
     loadProduct();
   }, [handle]);
 
   useEffect(() => {
-  async function loadWishlistStatus() {
-    if (!product?.id) return;
+    async function loadWishlistStatus() {
+      if (!product?.id) return;
 
-    try {
-      const response = await fetch('/api/wishlist/list');
-      const data = await response.json();
+      try {
+        const response = await fetch('/api/wishlist/list');
+        const data = await response.json();
 
-      if (data?.success && Array.isArray(data.items)) {
-        setIsWishlisted(
-          data.items.some((item: any) => item.product_id === product.id)
-        );
+        if (response.status === 401) {
+          setIsWishlisted(false);
+          return;
+        }
+
+        if (data?.success && Array.isArray(data.items)) {
+          setIsWishlisted(
+            data.items.some((item: any) => item.product_id === product.id)
+          );
+        }
+      } catch {
+        setIsWishlisted(false);
       }
-    } catch {
-      setIsWishlisted(false);
     }
-  }
 
-  loadWishlistStatus();
-}, [product?.id]);
+    loadWishlistStatus();
+  }, [product?.id]);
 
   function getVariantId() {
     return product?.selectedVariant?.id || product?.variants?.[0]?.id || '';
   }
+
   async function handleWishlistToggle() {
-  if (!product || wishlistLoading) return;
+    if (!product || wishlistLoading) return;
 
-  setWishlistLoading(true);
+    setWishlistLoading(true);
+    setWishlistMessage('');
 
-  try {
-    if (isWishlisted) {
-      const response = await fetch('/api/wishlist/remove', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-        }),
-      });
+    try {
+      if (isWishlisted) {
+        const response = await fetch('/api/wishlist/remove', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            product_id: product.id,
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data?.success) {
-        setIsWishlisted(false);
+        if (data?.success) {
+          setIsWishlisted(false);
+          setWishlistMessage('Removed from wishlist.');
+          return;
+        }
+
+        alert(data?.error || 'Unable to remove from wishlist.');
+      } else {
+        const selectedVariant =
+          product?.selectedVariant || product?.variants?.[0];
+
+        const response = await fetch('/api/wishlist/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            product_id: product.id,
+            variant_id: selectedVariant?.id || null,
+            handle: product.handle,
+            title: product.title,
+            image_url: product.featuredImage?.url || null,
+            price:
+              selectedVariant?.price?.amount ||
+              product.priceRange?.minVariantPrice?.amount ||
+              null,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          window.location.href = authLoginUrl;
+          return;
+        }
+
+        if (data?.success) {
+          setIsWishlisted(true);
+          setWishlistMessage('Added to wishlist.');
+          return;
+        }
+
+        alert(data?.error || 'Unable to add to wishlist.');
       }
-    } else {
-      const selectedVariant = product?.selectedVariant || product?.variants?.[0];
-
-      const response = await fetch('/api/wishlist/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-          variant_id: selectedVariant?.id || null,
-          handle: product.handle,
-          title: product.title,
-          image_url: product.featuredImage?.url || null,
-          price:
-            selectedVariant?.price?.amount ||
-            product.priceRange?.minVariantPrice?.amount ||
-            null,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.status === 401) {
-        window.location.href = '/account';
-        return;
-      }
-
-      if (data?.success) {
-        setIsWishlisted(true);
-      }
+    } catch {
+      alert('Unable to update wishlist.');
+    } finally {
+      setWishlistLoading(false);
     }
-  } catch {
-    alert('Unable to update wishlist.');
-  } finally {
-    setWishlistLoading(false);
   }
-}
 
   async function handleAddToCart() {
     if (!product) return;
@@ -241,7 +263,6 @@ export function ProductPage({ handle }: { handle: string }) {
 
   const images = product.images?.edges?.map((item: any) => item.node) || [];
   const mainImage = selectedImage || product.featuredImage?.url;
-
   const selectedVariant = product?.selectedVariant || product?.variants?.[0];
 
   const price = Number(
@@ -268,7 +289,6 @@ export function ProductPage({ handle }: { handle: string }) {
 
   const shippingLabel = getShippingLabel(product);
   const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
-
   const tags = product?.tags || [];
 
   const hasLocalDelivery =
@@ -341,26 +361,35 @@ export function ProductPage({ handle }: { handle: string }) {
               </div>
 
               <div className="mb-5 flex items-start justify-between gap-4">
-  <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#111111] sm:text-4xl md:text-5xl">
-    {product.title}
-  </h1>
+                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#111111] sm:text-4xl md:text-5xl">
+                  {product.title}
+                </h1>
 
-  <button
-    type="button"
-    onClick={handleWishlistToggle}
-    disabled={wishlistLoading}
-    aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border transition-all duration-300 hover:-translate-y-0.5 ${
-      isWishlisted
-        ? 'border-[#0F5A46]/20 bg-[#0F5A46] text-white shadow-[0_12px_28px_rgba(15,90,70,0.22)]'
-        : 'border-[#EAE7DF] bg-white text-[#111111] hover:border-[#0F5A46]/25 hover:bg-[#F5F5F5] hover:text-[#0F5A46]'
-    }`}
-  >
-    <Heart
-      className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`}
-    />
-  </button>
-</div>
+                <button
+                  type="button"
+                  onClick={handleWishlistToggle}
+                  disabled={wishlistLoading}
+                  aria-label={
+                    isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'
+                  }
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 ${
+                    isWishlisted
+                      ? 'border-[#0F5A46]/20 bg-[#0F5A46] text-white shadow-[0_12px_28px_rgba(15,90,70,0.22)]'
+                      : 'border-[#EAE7DF] bg-white text-[#111111] hover:border-[#0F5A46]/25 hover:bg-[#F5F5F5] hover:text-[#0F5A46]'
+                  }`}
+                >
+                  <Heart
+                    className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`}
+                  />
+                </button>
+              </div>
+
+              {wishlistMessage && (
+                <div className="mb-5 flex items-center gap-2 rounded-2xl border border-[#0F5A46]/15 bg-[#0F5A46]/8 px-4 py-3 text-sm font-bold text-[#0F5A46]">
+                  <Heart className="h-4 w-4 fill-current" />
+                  {wishlistMessage}
+                </div>
+              )}
 
               <div className="mb-3 flex flex-wrap items-center gap-3">
                 <p className="text-3xl font-extrabold text-[#111111] md:text-4xl">
