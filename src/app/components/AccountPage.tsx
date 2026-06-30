@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 
-const shopifyAuthLoginUrl = '/api/auth/login';
+const shopifyAuthLoginUrl = 'https://www.ildistributions.com/api/auth/login';
 const shopifyProfileUrl = 'https://account.ildistributions.com/profile';
 
 type Customer = {
