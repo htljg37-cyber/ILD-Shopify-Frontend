@@ -15,42 +15,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({
       isLoggedIn: false,
       customer: null,
+      reason: 'missing_access_token_cookie',
     });
   }
 
-  const query = `
-    query Customer {
-      customer {
-        id
-        firstName
-        lastName
-        emailAddress {
-          emailAddress
+  try {
+    const discoveryResponse = await fetch(
+      'https://account.ildistributions.com/.well-known/customer-account-api'
+    );
+
+    if (!discoveryResponse.ok) {
+      return res.status(500).json({
+        isLoggedIn: false,
+        customer: null,
+        reason: 'failed_customer_api_discovery',
+      });
+    }
+
+    const apiConfig = await discoveryResponse.json();
+    const graphqlEndpoint = apiConfig.graphql_api;
+
+    const query = `
+      query Customer {
+        customer {
+          id
+          firstName
+          lastName
+          emailAddress {
+            emailAddress
+          }
         }
       }
+    `;
+
+    const response = await fetch(graphqlEndpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: accessToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.errors) {
+      return res.status(401).json({
+        isLoggedIn: false,
+        customer: null,
+        reason: 'customer_api_request_failed',
+        errors: data.errors || null,
+      });
     }
-  `;
 
-  const response = await fetch('https://account.ildistributions.com/api/2025-01/graphql.json', {
-    method: 'POST',
-    headers: {
-      Authorization: accessToken,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query }),
-  });
-
-  if (!response.ok) {
-    return res.status(401).json({
+    return res.status(200).json({
+      isLoggedIn: true,
+      customer: data.data.customer,
+    });
+  } catch (error) {
+    return res.status(500).json({
       isLoggedIn: false,
       customer: null,
+      reason: 'unexpected_error',
     });
   }
-
-  const data = await response.json();
-
-  return res.status(200).json({
-    isLoggedIn: true,
-    customer: data.data.customer,
-  });
 }
