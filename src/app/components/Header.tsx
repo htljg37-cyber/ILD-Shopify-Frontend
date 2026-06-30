@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, User, ShoppingCart, Menu, X } from 'lucide-react';
+import {
+  Search,
+  User,
+  ShoppingCart,
+  Menu,
+  X,
+  Heart,
+  Package,
+  LogOut,
+} from 'lucide-react';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -144,6 +153,8 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [customer, setCustomer] = useState<any>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
@@ -175,6 +186,25 @@ export function Header() {
 
     loadProducts();
   }, []);
+
+  useEffect(() => {
+  async function loadCustomer() {
+    try {
+      const response = await fetch('/api/customer/me');
+      const data = await response.json();
+
+      if (data?.isLoggedIn && data?.customer) {
+        setCustomer(data.customer);
+      } else {
+        setCustomer(null);
+      }
+    } catch {
+      setCustomer(null);
+    }
+  }
+
+  loadCustomer();
+}, []);
 
   const searchResults = useMemo(() => {
     if (!searchTerm.trim()) return [];
@@ -261,15 +291,72 @@ export function Header() {
               <Search className="h-5 w-5 text-[#111111]" />
             </Button>
 
-            <a
-              href={accountPath}
-              className="hidden md:block"
-              aria-label="My Account"
-            >
-              <Button variant="ghost" size="icon" className={iconButtonClass}>
-                <User className="h-5 w-5 transition-all duration-300" />
-              </Button>
-            </a>
+            <div className="relative hidden md:block">
+  <Button
+    variant="ghost"
+    size="icon"
+    className={iconButtonClass}
+    onClick={() => {
+      if (!customer) {
+        window.location.href = '/account';
+        return;
+      }
+
+      setAccountMenuOpen((value) => !value);
+    }}
+  >
+    <User className="h-5 w-5 transition-all duration-300" />
+
+    {customer && (
+      <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-[#0F5A46]" />
+    )}
+  </Button>
+
+  {accountMenuOpen && customer && (
+    <div className="absolute right-0 top-12 z-[9999] w-64 overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-2xl">
+      <div className="border-b border-[#EAE7DF] p-4">
+        <p className="text-sm font-bold text-[#111111]">
+          {customer.firstName || 'Customer'}
+        </p>
+        <p className="mt-1 truncate text-xs text-[#717182]">
+          {customer.emailAddress?.emailAddress}
+        </p>
+      </div>
+
+      <a
+        href="https://account.ildistributions.com/profile"
+        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+      >
+        <User className="h-4 w-4" />
+        Profile
+      </a>
+
+      <a
+        href="/wishlist"
+        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+      >
+        <Heart className="h-4 w-4" />
+        Wishlist
+      </a>
+
+      <a
+        href="/track-order"
+        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+      >
+        <Package className="h-4 w-4" />
+        Orders
+      </a>
+
+      <a
+        href="/api/auth/logout"
+        className="flex items-center gap-3 border-t border-[#EAE7DF] px-4 py-3 text-sm font-semibold text-[#c00000] hover:bg-red-50"
+      >
+        <LogOut className="h-4 w-4" />
+        Sign out
+      </a>
+    </div>
+  )}
+</div>
 
             <a href="/cart" aria-label="Cart">
               <Button
