@@ -93,12 +93,12 @@ export function WishlistPage() {
                 className="overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(15,90,70,0.12)]"
               >
                 <a href={`/product/${item.handle}`}>
-                  <div className="flex h-72 items-center justify-center bg-[#F8F7F3] p-6">
+                  <div className="flex h-72 items-center justify-center bg-[#F8F7F3] p-4">
                     {item.image_url ? (
                       <img
                         src={item.image_url}
                         alt={item.title}
-                        className="h-full w-full object-contain"
+                        className="max-h-full max-w-full object-contain"
                       />
                     ) : (
                       <Heart className="h-10 w-10 text-[#C8A45D]" />
