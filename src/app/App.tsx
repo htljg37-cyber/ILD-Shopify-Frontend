@@ -22,6 +22,7 @@ import { TermsOfServicePage } from './components/TermsOfServicePage';
 import { ShippingPolicyPage } from './components/ShippingPolicyPage';
 import { ReturnsPolicyPage } from './components/ReturnsPolicyPage';
 import { AccountPage } from './components/AccountPage';
+import { WishlistPage } from './components/WishlistPage';
 import { getCollections } from '../lib/shopify';
 
 const revealSection = {
@@ -201,6 +202,18 @@ function PageRoute({ path }: { path: string }) {
   }
 
   if (path === '/cart') return <CartPage />;
+
+  if (path === '/wishlist') {
+  return (
+    <>
+      <PageHero
+        title="Wishlist"
+        description="View your saved products and continue shopping anytime."
+      />
+      <WishlistPage />
+    </>
+  );
+}
 
   if (path === '/account') {
     return (
