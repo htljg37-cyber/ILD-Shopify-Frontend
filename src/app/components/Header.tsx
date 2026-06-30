@@ -26,6 +26,8 @@ const navItems = [
   ['Contact', '/contact'],
 ];
 
+const accountPath = 'https://account.ildistributions.com/profile';
+
 const navLinkClass =
   'relative px-1 py-2 text-[15px] font-semibold tracking-[0.01em] text-[#111111]/90 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:text-[#0F5A46] after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:rounded-full after:bg-gradient-to-r after:from-[#0F5A46] after:to-[#C8A45D] after:transition-all after:duration-300 hover:after:w-full';
 
@@ -225,8 +227,8 @@ export function Header() {
               className="group flex items-center flex-shrink-0 transition-all duration-300 ease-out hover:-translate-y-0.5"
             >
               <img
-                 src="/logo.png"
-                 alt="IL Distributions LLC"
+                src="/logo.png"
+                alt="IL Distributions LLC"
                 className="h-10 sm:h-12 lg:h-14 w-auto max-w-[230px] object-contain transition-all duration-300 ease-out group-hover:scale-[1.04] group-hover:drop-shadow-[0_8px_18px_rgba(15,90,70,0.22)]"
               />
             </a>
@@ -259,13 +261,17 @@ export function Header() {
               <Search className="h-5 w-5 text-[#111111]" />
             </Button>
 
-            <a href="/account" className="hidden md:block">
+            <a
+              href={accountPath}
+              className="hidden md:block"
+              aria-label="My Account"
+            >
               <Button variant="ghost" size="icon" className={iconButtonClass}>
                 <User className="h-5 w-5 transition-all duration-300" />
               </Button>
             </a>
 
-            <a href="/cart">
+            <a href="/cart" aria-label="Cart">
               <Button
                 variant="ghost"
                 size="icon"
@@ -346,7 +352,7 @@ export function Header() {
               </motion.div>
 
               <nav className="flex flex-col gap-1">
-                {[...navItems, ['My Account', '/account']].map(
+                {[...navItems, ['My Account', accountPath]].map(
                   ([label, href], index) => (
                     <motion.a
                       key={href}
