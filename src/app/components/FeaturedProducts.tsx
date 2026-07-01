@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Star,
   ShoppingCart,
   ArrowRight,
   Sparkles,
   Truck,
+  CheckCircle2,
+  X,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { getProducts, createCart, addToCart } from '../../lib/shopify';
@@ -13,10 +15,6 @@ import { getShippingLabel } from '../../lib/shipping';
 
 const premiumHover =
   'transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)] active:translate-y-0';
-
-function formatMoney(amount: number) {
-  return `$${amount.toFixed(2)}`;
-}
 
 function getPriceInfo(product: any) {
   const selectedVariant = product?.selectedVariant || product?.variants?.[0];
@@ -54,22 +52,47 @@ function getPriceInfo(product: any) {
 export function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [addingId, setAddingId] = useState<string>('');
-  async function saveCustomerCart(cart: any) {
-  if (!cart?.id) return;
+  const [addedId, setAddedId] = useState<string>('');
+  const [cartToast, setCartToast] = useState<{
+    title: string;
+    image?: string;
+  } | null>(null);
 
-  try {
-    await fetch('/api/cart/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cart_id: cart.id,
-        cart_data: cart,
-      }),
-    });
-  } catch {
-    console.warn('Cart could not be synced.');
+  async function saveCustomerCart(cart: any) {
+    if (!cart?.id) return;
+
+    try {
+      await fetch('/api/cart/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart_id: cart.id,
+          cart_data: cart,
+        }),
+      });
+    } catch {
+      console.warn('Cart could not be synced.');
+    }
   }
-}
+
+  function showCartToast(product: any) {
+    setCartToast({
+      title: product.title,
+      image: product.featuredImage?.url,
+    });
+
+    window.setTimeout(() => {
+      setCartToast(null);
+    }, 3500);
+  }
+
+  function markProductAdded(productId: string) {
+    setAddedId(productId);
+
+    window.setTimeout(() => {
+      setAddedId('');
+    }, 2000);
+  }
 
   useEffect(() => {
     async function loadProducts() {
@@ -123,29 +146,29 @@ export function FeaturedProducts() {
         const updatedCart = await addToCart(cartId, variantId, 1);
 
         if (!updatedCart || updatedCart.error) {
-  localStorage.removeItem('shopify_cart_id');
+          localStorage.removeItem('shopify_cart_id');
 
-  const newCart = await createCart(variantId, 1);
+          const newCart = await createCart(variantId, 1);
 
-  if (!newCart || newCart.error) {
-    alert(newCart?.message || 'Unable to add to cart.');
-    setAddingId('');
-    return;
-  }
+          if (!newCart || newCart.error) {
+            alert(newCart?.message || 'Unable to add to cart.');
+            setAddingId('');
+            return;
+          }
 
-  localStorage.setItem('shopify_cart_id', newCart.id);
+          localStorage.setItem('shopify_cart_id', newCart.id);
+          localStorage.setItem(
+            'shopify_cart_quantity',
+            String(newCart.totalQuantity || 1)
+          );
 
-  localStorage.setItem(
-    'shopify_cart_quantity',
-    String(newCart.totalQuantity || 1)
-  );
-
-  await saveCustomerCart(newCart);
-
-  window.dispatchEvent(new Event('cartUpdated'));
-  setAddingId('');
-  return;
-}
+          await saveCustomerCart(newCart);
+          window.dispatchEvent(new Event('cartUpdated'));
+          showCartToast(product);
+          markProductAdded(product.id);
+          setAddingId('');
+          return;
+        }
 
         localStorage.setItem(
           'shopify_cart_quantity',
@@ -156,6 +179,8 @@ export function FeaturedProducts() {
       }
 
       window.dispatchEvent(new Event('cartUpdated'));
+      showCartToast(product);
+      markProductAdded(product.id);
     } catch (error) {
       console.error(error);
       alert('Something went wrong.');
@@ -233,6 +258,8 @@ export function FeaturedProducts() {
               } = getPriceInfo(product);
 
               const shippingLabel = getShippingLabel(product);
+              const isAdding = addingId === product.id;
+              const isAdded = addedId === product.id;
 
               return (
                 <motion.a
@@ -290,19 +317,28 @@ export function FeaturedProducts() {
                           event.stopPropagation();
                           handleQuickAdd(product);
                         }}
-                        disabled={addingId === product.id || isOutOfStock}
+                        disabled={isAdding || isOutOfStock}
                         className={`w-full shadow-[0_12px_28px_rgba(15,90,70,0.30)] transition-all duration-300 hover:-translate-y-0.5 ${
                           isOutOfStock
                             ? 'cursor-not-allowed bg-[#717182] hover:bg-[#717182] text-white'
-                            : 'bg-[#0F5A46] hover:bg-[#126B54] text-white'
+                            : isAdded
+                              ? 'bg-[#126B54] hover:bg-[#126B54] text-white'
+                              : 'bg-[#0F5A46] hover:bg-[#126B54] text-white'
                         }`}
                       >
-                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        {isAdded ? (
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                        ) : (
+                          <ShoppingCart className="mr-2 h-4 w-4" />
+                        )}
+
                         {isOutOfStock
                           ? 'Out of Stock'
-                          : addingId === product.id
+                          : isAdding
                             ? 'Adding...'
-                            : 'Quick Add'}
+                            : isAdded
+                              ? 'Added'
+                              : 'Quick Add'}
                       </Button>
                     </div>
                   </div>
@@ -348,6 +384,60 @@ export function FeaturedProducts() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {cartToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -14, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -14, scale: 0.96 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed right-5 top-24 z-[99999] w-[calc(100%-2.5rem)] max-w-sm overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-[0_20px_60px_rgba(17,17,17,0.18)]"
+          >
+            <div className="flex gap-4 p-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#F8F7F3]">
+                {cartToast.image ? (
+                  <img
+                    src={cartToast.image}
+                    alt={cartToast.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <CheckCircle2 className="h-6 w-6 text-[#0F5A46]" />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-[#0F5A46]" />
+                  <p className="text-sm font-extrabold text-[#111111]">
+                    Added to cart
+                  </p>
+                </div>
+
+                <p className="line-clamp-2 text-sm text-[#717182]">
+                  {cartToast.title}
+                </p>
+
+                <a
+                  href="/cart"
+                  className="mt-3 inline-flex text-sm font-bold text-[#0F5A46] hover:text-[#C8A45D]"
+                >
+                  View Cart →
+                </a>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCartToast(null)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F5F5F5] text-[#717182] transition hover:bg-[#0F5A46] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

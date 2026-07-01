@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -179,6 +179,7 @@ export function Header() {
   const [customer, setCustomer] = useState<any>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const customerInitials = getCustomerInitials(customer);
 
   useEffect(() => {
@@ -188,6 +189,33 @@ export function Header() {
       document.body.style.overflow = '';
     };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    function handleClickOutside(event: globalThis.MouseEvent) {
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target as Node)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    if (accountMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [accountMenuOpen]);
 
   useEffect(() => {
     function updateCartQuantity() {
@@ -331,7 +359,7 @@ export function Header() {
               <Search className="h-5 w-5 text-[#111111]" />
             </Button>
 
-            <div className="relative hidden md:block">
+            <div ref={accountMenuRef} className="relative hidden md:block">
               <Button
                 variant="ghost"
                 size="icon"
@@ -349,7 +377,7 @@ export function Header() {
                   <div
                     className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-extrabold tracking-tight shadow-[0_8px_20px_rgba(15,90,70,0.20)] transition-all duration-300 ${
                       accountMenuOpen
-                        ? 'border-[#C8A45D] bg-[#0F5A46] text-white'
+                        ? 'border-[#C8A45D] bg-[#0F5A46] text-white ring-4 ring-[#0F5A46]/10'
                         : 'border-[#C8A45D]/80 bg-[#0F5A46] text-white hover:bg-[#126B54]'
                     }`}
                   >
@@ -360,51 +388,80 @@ export function Header() {
                 )}
               </Button>
 
-              {accountMenuOpen && customer && (
-                <div className="absolute right-0 top-12 z-[9999] w-64 overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-2xl">
-                  <div className="border-b border-[#EAE7DF] p-4">
-                    <p className="text-sm font-bold text-[#111111]">
-                      {customer.firstName || 'Customer'}
-                    </p>
-                    <p className="mt-1 truncate text-xs text-[#717182]">
-                      {customer.emailAddress?.emailAddress}
-                    </p>
-                  </div>
-
-                  <a
-                    href="https://account.ildistributions.com/profile"
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+              <AnimatePresence>
+                {accountMenuOpen && customer && (
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: -8,
+                      scale: 0.96,
+                      filter: 'blur(6px)',
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      filter: 'blur(0px)',
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -8,
+                      scale: 0.96,
+                      filter: 'blur(6px)',
+                    }}
+                    transition={{
+                      duration: 0.22,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="absolute right-0 top-12 z-[9999] w-64 origin-top-right overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-2xl"
                   >
-                    <User className="h-4 w-4" />
-                    Profile
-                  </a>
+                    <div className="border-b border-[#EAE7DF] p-4">
+                      <p className="text-sm font-bold text-[#111111]">
+                        {customer.firstName || 'Customer'}
+                      </p>
+                      <p className="mt-1 truncate text-xs text-[#717182]">
+                        {customer.emailAddress?.emailAddress}
+                      </p>
+                    </div>
 
-                  <a
-                    href="/wishlist"
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                  >
-                    <Heart className="h-4 w-4" />
-                    Wishlist
-                  </a>
+                    <a
+                      href="https://account.ildistributions.com/profile"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+                    >
+                      <User className="h-4 w-4" />
+                      Profile
+                    </a>
 
-                  <a
-                    href="/orders"
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                  >
-                    <Package className="h-4 w-4" />
-                    Orders
-                  </a>
+                    <a
+                      href="/wishlist"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+                    >
+                      <Heart className="h-4 w-4" />
+                      Wishlist
+                    </a>
 
-                  <button
-                    type="button"
-                    onClick={handleCustomerLogout}
-                    className="flex w-full items-center gap-3 border-t border-[#EAE7DF] px-4 py-3 text-left text-sm font-semibold text-[#c00000] hover:bg-red-50"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </button>
-                </div>
-              )}
+                    <a
+                      href="/orders"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+                    >
+                      <Package className="h-4 w-4" />
+                      Orders
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={handleCustomerLogout}
+                      className="flex w-full items-center gap-3 border-t border-[#EAE7DF] px-4 py-3 text-left text-sm font-semibold text-[#c00000] hover:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <a href="/cart" aria-label="Cart">

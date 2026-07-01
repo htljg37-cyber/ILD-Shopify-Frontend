@@ -13,6 +13,7 @@ import {
 import { Button } from './ui/button';
 import { getProductByHandle, createCart, addToCart } from '../../lib/shopify';
 import { getShippingLabel } from '../../lib/shipping';
+import { ProductDescription } from './ProductDescription';
 
 const LOCAL_DELIVERY_ZIPS = [
   '92399',
@@ -159,7 +160,8 @@ export function ProductPage({ handle }: { handle: string }) {
 
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
     const variantId = getVariantId();
-    async function saveCustomerCart(cart: any) {
+ 
+  async function saveCustomerCart(cart: any) {
   if (!cart?.id) return;
 
   try {
@@ -498,10 +500,7 @@ export function ProductPage({ handle }: { handle: string }) {
                 </div>
               )}
 
-              <div
-                className="prose prose-sm mb-8 max-w-none text-[#717182] prose-p:leading-relaxed prose-strong:text-[#111111]"
-                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-              />
+              <ProductDescription html={product.descriptionHtml} tags={tags} />
 
               <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Button

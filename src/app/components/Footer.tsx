@@ -1,12 +1,12 @@
 import {
-  Facebook,
   Instagram,
-  Youtube,
   Mail,
   ArrowRight,
   ShieldCheck,
   Truck,
   CreditCard,
+  Music2,
+  Store,
 } from 'lucide-react';
 
 const shopLinks = [
@@ -30,19 +30,19 @@ const legalLinks = [
 
 const socialLinks = [
   {
-    href: 'https://facebook.com',
-    icon: Facebook,
-    label: 'Facebook',
-  },
-  {
-    href: 'https://instagram.com',
+    href: 'https://www.instagram.com/il_distributions',
     icon: Instagram,
     label: 'Instagram',
   },
   {
-    href: 'https://youtube.com',
-    icon: Youtube,
-    label: 'YouTube',
+    href: 'https://www.tiktok.com/@ildcollectibles',
+    icon: Music2,
+    label: 'TikTok',
+  },
+  {
+    href: 'https://www.ebay.com/usr/ild_distributions',
+    icon: Store,
+    label: 'eBay',
   },
 ];
 
@@ -61,10 +61,7 @@ export function Footer() {
       <div className="container relative z-10 mx-auto px-4 py-16 md:px-6 md:py-20">
         <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">
-            <a
-              href="/"
-              className="group mb-6 inline-flex items-center transition-all duration-300 hover:-translate-y-0.5"
-            >
+            <a href="/" className="group mb-6 inline-flex items-center transition-all duration-300 hover:-translate-y-0.5">
               <img
                 src="/logo.png"
                 alt="IL Distributions LLC"
@@ -169,6 +166,7 @@ export function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={social.label}
+                    title={social.label}
                     className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-white/75 transition-all duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/50 hover:bg-[#0F5A46] hover:text-white hover:shadow-[0_12px_30px_rgba(15,90,70,0.25)]"
                   >
                     <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
@@ -180,17 +178,11 @@ export function Footer() {
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-white/55">
               <span>© 2026 IL Distributions LLC. All rights reserved.</span>
 
-              <a
-                href="/privacy-policy"
-                className="transition-colors duration-300 hover:text-white"
-              >
+              <a href="/privacy-policy" className="transition-colors duration-300 hover:text-white">
                 Privacy Policy
               </a>
 
-              <a
-                href="/terms-of-service"
-                className="transition-colors duration-300 hover:text-white"
-              >
+              <a href="/terms-of-service" className="transition-colors duration-300 hover:text-white">
                 Terms of Service
               </a>
             </div>
@@ -203,16 +195,21 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-white/45">
             <span className="mr-1">We accept:</span>
 
-            {['Visa', 'Mastercard', 'American Express', 'PayPal', 'Apple Pay', 'Google Pay'].map(
-              (payment) => (
-                <span
-                  key={payment}
-                  className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 font-semibold text-white/55"
-                >
-                  {payment}
-                </span>
-              )
-            )}
+            {[
+              'Visa',
+              'Mastercard',
+              'American Express',
+              'PayPal',
+              'Apple Pay',
+              'Google Pay',
+            ].map((payment) => (
+              <span
+                key={payment}
+                className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 font-semibold text-white/55"
+              >
+                {payment}
+              </span>
+            ))}
           </div>
         </div>
       </div>
