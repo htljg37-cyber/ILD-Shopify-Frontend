@@ -25,8 +25,12 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
 
   useEffect(() => {
     async function loadProducts() {
-      const data = await getProducts();
-      setProducts(data);
+      try {
+        const data = await getProducts();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch {
+        setProducts([]);
+      }
     }
 
     loadProducts();
@@ -37,7 +41,7 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
 
     const currentTags = currentProduct.tags || [];
 
-    return products
+    const scoredProducts = products
       .filter((product) => product.id !== currentProduct.id)
       .map((product) => {
         const productTags = product.tags || [];
@@ -48,12 +52,32 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
           score,
         };
       })
-      .sort((a, b) => b.score - a.score)
-.slice(0, 4)
-.map((item) => item.product);
+      .sort((a, b) => b.score - a.score);
+
+    const similarProducts = scoredProducts
+      .filter((item) => item.score > 0)
+      .map((item) => item.product);
+
+    const fallbackProducts = scoredProducts
+      .filter((item) => item.score === 0)
+      .map((item) => item.product);
+
+    return [...similarProducts, ...fallbackProducts].slice(0, 4);
   }, [products, currentProduct]);
 
-  if (relatedProducts.length === 0) return null;
+  if (!currentProduct) return null;
+
+  if (relatedProducts.length === 0) {
+    return (
+      <section className="container relative z-10 mx-auto px-4 pb-16 md:px-6 md:pb-24">
+        <div className="rounded-3xl border border-[#EAE7DF] bg-white/80 p-8 text-center shadow-sm">
+          <p className="text-sm font-semibold text-[#717182]">
+            More products will appear here as your catalog grows.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="container relative z-10 mx-auto px-4 pb-16 md:px-6 md:pb-24">
@@ -71,7 +95,7 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
           </h2>
 
           <p className="mt-2 max-w-xl text-sm text-[#717182]">
-            Products selected automatically based on similar tags and categories.
+            Related products selected automatically from your catalog.
           </p>
         </div>
 
