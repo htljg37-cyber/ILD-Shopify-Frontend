@@ -159,6 +159,22 @@ export function ProductPage({ handle }: { handle: string }) {
 
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
     const variantId = getVariantId();
+    async function saveCustomerCart(cart: any) {
+  if (!cart?.id) return;
+
+  try {
+    await fetch('/api/cart/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cart_id: cart.id,
+        cart_data: cart,
+      }),
+    });
+  } catch {
+    console.warn('Cart could not be synced.');
+  }
+}
 
     if (isOutOfStock) {
       alert('This product is currently out of stock.');
@@ -190,6 +206,8 @@ export function ProductPage({ handle }: { handle: string }) {
           'shopify_cart_quantity',
           String(newCart.totalQuantity || 1)
         );
+        
+        await saveCustomerCart(newCart);
       } else {
         const updatedCart = await addToCart(cartId, variantId, 1);
 
@@ -203,6 +221,8 @@ export function ProductPage({ handle }: { handle: string }) {
           'shopify_cart_quantity',
           String(updatedCart.totalQuantity || 1)
         );
+        
+        await saveCustomerCart(updatedCart);
       }
 
       setAddedMessage('Product added to cart.');

@@ -13,26 +13,73 @@ import { getCart, updateCartLine, removeCartLine } from '../../lib/shopify';
 export default function CartPage() {
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  async function saveCustomerCart(updatedCart: any) {
+  if (!updatedCart?.id) return;
+
+  try {
+    await fetch('/api/cart/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cart_id: updatedCart.id,
+        cart_data: updatedCart,
+      }),
+    });
+  } catch {
+    console.warn('Cart could not be synced.');
+  }
+}
+
+async function clearCustomerCart() {
+  try {
+    await fetch('/api/cart/clear', {
+      method: 'DELETE',
+    });
+  } catch {
+    console.warn('Saved cart could not be cleared.');
+  }
+}
 
   async function loadCart() {
-    const cartId = localStorage.getItem('shopify_cart_id');
+  setLoading(true);
 
-    if (!cartId) {
-      setLoading(false);
-      return;
+  let cartId = localStorage.getItem('shopify_cart_id');
+
+  if (!cartId) {
+    try {
+      const response = await fetch('/api/cart/load');
+      const data = await response.json();
+
+      if (data?.success && data?.cart?.shopify_cart_id) {
+  localStorage.setItem('shopify_cart_id', data.cart.shopify_cart_id);
+  cartId = data.cart.shopify_cart_id;
+}
+    } catch {
+      console.warn('Saved cart could not be loaded.');
     }
-
-    const data = await getCart(cartId);
-    setCart(data);
-
-    localStorage.setItem(
-      'shopify_cart_quantity',
-      String(data?.totalQuantity || 0)
-    );
-    window.dispatchEvent(new Event('cartUpdated'));
-
-    setLoading(false);
   }
+
+  if (!cartId) {
+    setLoading(false);
+    return;
+  }
+
+  const data = await getCart(cartId);
+  setCart(data);
+
+  localStorage.setItem(
+    'shopify_cart_quantity',
+    String(data?.totalQuantity || 0)
+  );
+
+  window.dispatchEvent(new Event('cartUpdated'));
+
+  if (data?.id) {
+    await saveCustomerCart(data);
+  }
+
+  setLoading(false);
+}
 
   useEffect(() => {
     loadCart();
@@ -50,6 +97,8 @@ export default function CartPage() {
       String(updatedCart?.totalQuantity || 0)
     );
     window.dispatchEvent(new Event('cartUpdated'));
+
+    await saveCustomerCart(updatedCart);
   }
 
   async function decreaseQuantity(lineId: string, quantity: number) {
@@ -83,6 +132,13 @@ export default function CartPage() {
       String(updatedCart?.totalQuantity || 0)
     );
     window.dispatchEvent(new Event('cartUpdated'));
+
+    if ((updatedCart?.totalQuantity || 0) === 0) {
+  localStorage.removeItem('shopify_cart_id');
+  await clearCustomerCart();
+} else {
+  await saveCustomerCart(updatedCart);
+}
   }
 
   function handleCheckout() {
