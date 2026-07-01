@@ -1,21 +1,44 @@
 import { CheckCircle2, ChevronDown, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
-function stripHtml(html: string) {
+function htmlToLines(html: string) {
   const div = document.createElement('div');
   div.innerHTML = html || '';
-  return div.textContent || div.innerText || '';
-}
 
-function splitLines(text: string) {
-  return text
+  div.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+
+  div.querySelectorAll('li').forEach((li) => {
+    li.textContent = `\n• ${li.textContent || ''}`;
+  });
+
+  div.querySelectorAll('p, div, ul, ol').forEach((el) => {
+    el.append('\n');
+  });
+
+  return (div.textContent || '')
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
 }
 
 function cleanBullet(line: string) {
-  return line.replace(/^[-•✓✔✅\*]\s*/, '').trim();
+  return line
+    .replace(/^[-•✓✔✅\*]\s*/, '')
+    .replace(/^(features|feature|highlights):?\s*/i, '')
+    .trim();
+}
+
+function extractFeatureItems(line: string) {
+  const cleaned = line.replace(/^(features|feature|highlights):?\s*/i, '');
+
+  return cleaned
+    .split(/(?:•|✓|✔|✅| - )/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 2);
+}
+
+function isFeatureLine(line: string) {
+  return /^(features|feature|highlights):?/i.test(line);
 }
 
 function isBullet(line: string) {
@@ -67,16 +90,26 @@ export function ProductDescription({
   html: string;
   tags?: string[];
 }) {
-  const text = stripHtml(html);
-  const lines = splitLines(text);
+  const lines = htmlToLines(html);
+  const text = lines.join(' ');
+  const lowerText = text.toLowerCase();
 
-  const bulletLines = lines.filter(isBullet).map(cleanBullet);
+  const featureLines = lines.filter(isFeatureLine);
+  const inlineFeatures = featureLines.flatMap(extractFeatureItems);
+
+  const bulletFeatures = lines.filter(isBullet).map(cleanBullet);
+
+  const bulletLines = [...inlineFeatures, ...bulletFeatures].filter(
+    (item, index, array) => item && array.indexOf(item) === index
+  );
+
   const specLines = lines.filter(isSpec);
 
   const normalLines = lines.filter(
     (line) =>
       !isBullet(line) &&
       !isSpec(line) &&
+      !isFeatureLine(line) &&
       !/^(features|feature|specifications|description|care|package includes):?$/i.test(
         line
       )
@@ -90,8 +123,6 @@ export function ProductDescription({
       value: rest.join(':').trim(),
     };
   });
-
-  const lowerText = text.toLowerCase();
 
   const isFlower =
     tags.includes('shipping_local') ||
