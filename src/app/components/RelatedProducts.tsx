@@ -48,10 +48,9 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
           score,
         };
       })
-      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 4)
-      .map((item) => item.product);
+.slice(0, 4)
+.map((item) => item.product);
   }, [products, currentProduct]);
 
   if (relatedProducts.length === 0) return null;
