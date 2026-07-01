@@ -14,6 +14,7 @@ import { Button } from './ui/button';
 import { getProductByHandle, createCart, addToCart } from '../../lib/shopify';
 import { getShippingLabel } from '../../lib/shipping';
 import { ProductDescription } from './ProductDescription';
+import { RelatedProducts } from './RelatedProducts';
 
 const LOCAL_DELIVERY_ZIPS = [
   '92399',
