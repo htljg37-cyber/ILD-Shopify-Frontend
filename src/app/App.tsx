@@ -214,8 +214,9 @@ function PageRoute({ path }: { path: string }) {
       <WishlistPage />
     </>
   );
+}
 
-  if (path === '/orders') {
+if (path === '/orders') {
   return (
     <>
       <PageHero
@@ -225,7 +226,6 @@ function PageRoute({ path }: { path: string }) {
       <OrdersPage />
     </>
   );
-}
 }
 
   if (path === '/account') {
