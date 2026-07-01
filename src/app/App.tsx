@@ -23,6 +23,7 @@ import { ShippingPolicyPage } from './components/ShippingPolicyPage';
 import { ReturnsPolicyPage } from './components/ReturnsPolicyPage';
 import { AccountPage } from './components/AccountPage';
 import { WishlistPage } from './components/WishlistPage';
+import OrdersPage from './components/OrdersPage';
 import { getCollections } from '../lib/shopify';
 
 const revealSection = {
@@ -213,6 +214,18 @@ function PageRoute({ path }: { path: string }) {
       <WishlistPage />
     </>
   );
+
+  if (path === '/orders') {
+  return (
+    <>
+      <PageHero
+        title="My Orders"
+        description="Review your purchase history and order status."
+      />
+      <OrdersPage />
+    </>
+  );
+}
 }
 
   if (path === '/account') {
