@@ -24,21 +24,23 @@ function htmlToLines(html: string) {
 function cleanBullet(line: string) {
   return line
     .replace(/^[-•✓✔✅\*]\s*/, '')
-    .replace(/^(features|feature|highlights):?\s*/i, '')
+    .replace(/^.*?(features|feature|highlights):?\s*/i, '')
     .trim();
 }
 
-function extractFeatureItems(line: string) {
-  const cleaned = line.replace(/^(features|feature|highlights):?\s*/i, '');
-
-  return cleaned
-    .split(/(?:•|✓|✔|✅| - )/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 2);
+function isFeatureLine(line: string) {
+  return /features|feature|highlights/i.test(line);
 }
 
-function isFeatureLine(line: string) {
-  return /^(features|feature|highlights):?/i.test(line);
+function extractFeatureItems(line: string) {
+  const cleaned = line
+    .replace(/^.*?(features|feature|highlights):?\s*/i, '')
+    .trim();
+
+  return cleaned
+    .split(/(?:•|✓|✔|✅|🌻|🌹|🦋|👑|💝|🌿|⏳|💧|🎁| - )/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 2);
 }
 
 function isBullet(line: string) {
@@ -94,12 +96,19 @@ export function ProductDescription({
   const text = lines.join(' ');
   const lowerText = text.toLowerCase();
 
-  const featureLines = lines.filter(isFeatureLine);
-  const inlineFeatures = featureLines.flatMap(extractFeatureItems);
+  const featureSectionItems = lines.flatMap((line, index) => {
+    if (!isFeatureLine(line)) return [];
+
+    const sameLineItems = extractFeatureItems(line);
+    const nextLine = lines[index + 1] || '';
+    const nextLineItems = extractFeatureItems(nextLine);
+
+    return [...sameLineItems, ...nextLineItems];
+  });
 
   const bulletFeatures = lines.filter(isBullet).map(cleanBullet);
 
-  const bulletLines = [...inlineFeatures, ...bulletFeatures].filter(
+  const bulletLines = [...featureSectionItems, ...bulletFeatures].filter(
     (item, index, array) => item && array.indexOf(item) === index
   );
 
@@ -110,6 +119,7 @@ export function ProductDescription({
       !isBullet(line) &&
       !isSpec(line) &&
       !isFeatureLine(line) &&
+      !bulletLines.includes(line) &&
       !/^(features|feature|specifications|description|care|package includes):?$/i.test(
         line
       )
