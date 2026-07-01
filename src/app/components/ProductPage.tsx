@@ -568,6 +568,12 @@ export function ProductPage({ handle }: { handle: string }) {
           </div>
         </div>
       </section>
+
+      <div className="container mx-auto px-4 py-10 text-center text-3xl font-bold text-red-600">
+  RELATED TEST
+</div>
+
+      <RelatedProducts currentProduct={product} />
     </main>
   );
 }
