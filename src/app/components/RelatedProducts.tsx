@@ -21,6 +21,7 @@ function getTagScore(currentTags: string[], productTags: string[]) {
 }
 
 export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
+    console.log('RELATED PRODUCTS COMPONENT LOADED', currentProduct?.title);
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -64,6 +65,12 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
 
     return [...similarProducts, ...fallbackProducts].slice(0, 4);
   }, [products, currentProduct]);
+
+  console.log('RELATED PRODUCTS DATA:', {
+  currentProduct,
+  productsLength: products.length,
+  relatedProductsLength: relatedProducts.length,
+});
 
   if (!currentProduct) return null;
 
