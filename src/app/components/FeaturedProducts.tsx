@@ -151,6 +151,8 @@ export function FeaturedProducts() {
           'shopify_cart_quantity',
           String(updatedCart.totalQuantity || 1)
         );
+
+        await saveCustomerCart(updatedCart);
       }
 
       window.dispatchEvent(new Event('cartUpdated'));
