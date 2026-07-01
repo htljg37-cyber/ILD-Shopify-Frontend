@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -157,27 +158,6 @@ export function Header() {
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
 
-    async function handleCustomerLogout() {
-  setCustomer(null);
-  setAccountMenuOpen(false);
-  setMobileMenuOpen(false);
-
-  localStorage.removeItem('shopify_cart_id');
-  localStorage.removeItem('shopify_cart_quantity');
-
-  window.dispatchEvent(new Event('cartUpdated'));
-
-  try {
-    await fetch('/api/cart/clear', {
-      method: 'DELETE',
-    });
-  } catch {
-    console.warn('Saved cart could not be cleared on logout.');
-  }
-
-  window.location.href = '/api/auth/logout';
-}
-
     return () => {
       document.body.style.overflow = '';
     };
@@ -224,6 +204,21 @@ export function Header() {
 
     loadCustomer();
   }, []);
+
+  function handleCustomerLogout(event?: MouseEvent<HTMLButtonElement>) {
+    event?.preventDefault();
+
+    setCustomer(null);
+    setAccountMenuOpen(false);
+    setMobileMenuOpen(false);
+
+    localStorage.removeItem('shopify_cart_id');
+    localStorage.removeItem('shopify_cart_quantity');
+
+    window.dispatchEvent(new Event('cartUpdated'));
+
+    window.location.replace('/api/auth/logout');
+  }
 
   const searchResults = useMemo(() => {
     if (!searchTerm.trim()) return [];
@@ -366,13 +361,14 @@ export function Header() {
                     Orders
                   </a>
 
-                  <a
-                    href="/api/auth/logout"
-                    className="flex items-center gap-3 border-t border-[#EAE7DF] px-4 py-3 text-sm font-semibold text-[#c00000] hover:bg-red-50"
+                  <button
+                    type="button"
+                    onClick={handleCustomerLogout}
+                    className="flex w-full items-center gap-3 border-t border-[#EAE7DF] px-4 py-3 text-left text-sm font-semibold text-[#c00000] hover:bg-red-50"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign out
-                  </a>
+                  </button>
                 </div>
               )}
             </div>
@@ -503,9 +499,9 @@ export function Header() {
                 ))}
 
                 {customer && (
-                  <motion.a
-                    href="/api/auth/logout"
-                    onClick={() => setMobileMenuOpen(false)}
+                  <motion.button
+                    type="button"
+                    onClick={handleCustomerLogout}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
@@ -513,10 +509,10 @@ export function Header() {
                       duration: 0.28,
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className="mt-2 block rounded-xl px-4 py-4 text-base font-semibold tracking-tight text-red-600 transition-all duration-300 hover:translate-x-1 hover:bg-red-50"
+                    className="mt-2 block rounded-xl px-4 py-4 text-left text-base font-semibold tracking-tight text-red-600 transition-all duration-300 hover:translate-x-1 hover:bg-red-50"
                   >
                     Sign out
-                  </motion.a>
+                  </motion.button>
                 )}
               </nav>
             </motion.aside>
