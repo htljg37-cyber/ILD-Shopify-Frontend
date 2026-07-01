@@ -26,6 +26,30 @@ function formatTag(tag: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function getCustomerInitials(customer: any) {
+  if (!customer) return '';
+
+  const source =
+    customer.firstName ||
+    customer.emailAddress?.emailAddress?.split('@')[0] ||
+    '';
+
+  const cleaned = source
+    .replace(/[_\-.]+/g, ' ')
+    .replace(/[^a-zA-Z0-9 ]/g, ' ')
+    .trim();
+
+  const parts = cleaned.split(' ').filter(Boolean);
+
+  if (parts.length === 0) return 'U';
+
+  return parts
+    .slice(0, 2)
+    .map((part: string) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
 const navItems = [
   ['Home', '/'],
   ['Catalog', '/catalog'],
@@ -154,6 +178,8 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState('');
   const [customer, setCustomer] = useState<any>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  const customerInitials = getCustomerInitials(customer);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
@@ -319,10 +345,18 @@ export function Header() {
                   setAccountMenuOpen((value) => !value);
                 }}
               >
-                <User className="h-5 w-5 transition-all duration-300" />
-
-                {customer && (
-                  <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-[#0F5A46]" />
+                {customer ? (
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-extrabold tracking-tight shadow-[0_8px_20px_rgba(15,90,70,0.20)] transition-all duration-300 ${
+                      accountMenuOpen
+                        ? 'border-[#C8A45D] bg-[#0F5A46] text-white'
+                        : 'border-[#C8A45D]/80 bg-[#0F5A46] text-white hover:bg-[#126B54]'
+                    }`}
+                  >
+                    {customerInitials}
+                  </div>
+                ) : (
+                  <User className="h-5 w-5 transition-all duration-300" />
                 )}
               </Button>
 
@@ -440,17 +474,23 @@ export function Header() {
 
               {customer && (
                 <motion.div
-                  className="mb-6 rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] p-4"
+                  className="mb-6 flex items-center gap-4 rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] p-4"
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.14, duration: 0.28 }}
                 >
-                  <p className="text-sm font-bold text-[#111111]">
-                    {customer.firstName || 'Customer'}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-[#717182]">
-                    {customer.emailAddress?.emailAddress}
-                  </p>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#C8A45D] bg-[#0F5A46] text-sm font-extrabold text-white shadow-[0_8px_20px_rgba(15,90,70,0.18)]">
+                    {customerInitials}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#111111]">
+                      {customer.firstName || 'Customer'}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-[#717182]">
+                      {customer.emailAddress?.emailAddress}
+                    </p>
+                  </div>
                 </motion.div>
               )}
 
