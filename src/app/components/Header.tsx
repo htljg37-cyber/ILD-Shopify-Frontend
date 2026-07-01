@@ -157,10 +157,24 @@ export function Header() {
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
 
-    function handleCustomerLogout() {
+    async function handleCustomerLogout() {
+  setCustomer(null);
+  setAccountMenuOpen(false);
+  setMobileMenuOpen(false);
+
   localStorage.removeItem('shopify_cart_id');
   localStorage.removeItem('shopify_cart_quantity');
+
   window.dispatchEvent(new Event('cartUpdated'));
+
+  try {
+    await fetch('/api/cart/clear', {
+      method: 'DELETE',
+    });
+  } catch {
+    console.warn('Saved cart could not be cleared on logout.');
+  }
+
   window.location.href = '/api/auth/logout';
 }
 

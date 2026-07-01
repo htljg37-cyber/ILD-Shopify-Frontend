@@ -43,50 +43,52 @@ async function clearCustomerCart() {
   async function loadCart() {
   setLoading(true);
 
-  let cartId = localStorage.getItem('shopify_cart_id');
+  let cartId: string | null = localStorage.getItem('shopify_cart_id');
 
   if (!cartId) {
     try {
       const response = await fetch('/api/cart/load');
-      const data = await response.json();
+      const savedCart = await response.json();
 
-      if (data?.success && data?.cart?.shopify_cart_id) {
-  localStorage.setItem('shopify_cart_id', data.cart.shopify_cart_id);
-  cartId = data.cart.shopify_cart_id;
-}
+      if (savedCart?.success && savedCart?.cart?.shopify_cart_id) {
+        cartId = savedCart.cart.shopify_cart_id;
+        localStorage.setItem('shopify_cart_id', savedCart.cart.shopify_cart_id);
+      }
     } catch {
       console.warn('Saved cart could not be loaded.');
     }
   }
 
   if (!cartId) {
+    setCart(null);
+    localStorage.setItem('shopify_cart_quantity', '0');
+    window.dispatchEvent(new Event('cartUpdated'));
     setLoading(false);
     return;
   }
 
-  const data = await getCart(cartId);
+  const shopifyCart = await getCart(cartId);
 
-if (!data || data.error) {
-  localStorage.removeItem('shopify_cart_id');
-  localStorage.setItem('shopify_cart_quantity', '0');
-  await clearCustomerCart();
-  setCart(null);
-  setLoading(false);
-  window.dispatchEvent(new Event('cartUpdated'));
-  return;
-}
+  if (!shopifyCart || shopifyCart.error) {
+    localStorage.removeItem('shopify_cart_id');
+    localStorage.setItem('shopify_cart_quantity', '0');
+    setCart(null);
+    window.dispatchEvent(new Event('cartUpdated'));
+    setLoading(false);
+    return;
+  }
 
-setCart(data);
+  setCart(shopifyCart);
 
   localStorage.setItem(
     'shopify_cart_quantity',
-    String(data?.totalQuantity || 0)
+    String(shopifyCart?.totalQuantity || 0)
   );
 
   window.dispatchEvent(new Event('cartUpdated'));
 
-  if (data?.id) {
-    await saveCustomerCart(data);
+  if (shopifyCart?.id) {
+    await saveCustomerCart(shopifyCart);
   }
 
   setLoading(false);
