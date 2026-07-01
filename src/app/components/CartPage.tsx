@@ -65,7 +65,18 @@ async function clearCustomerCart() {
   }
 
   const data = await getCart(cartId);
-  setCart(data);
+
+if (!data || data.error) {
+  localStorage.removeItem('shopify_cart_id');
+  localStorage.setItem('shopify_cart_quantity', '0');
+  await clearCustomerCart();
+  setCart(null);
+  setLoading(false);
+  window.dispatchEvent(new Event('cartUpdated'));
+  return;
+}
+
+setCart(data);
 
   localStorage.setItem(
     'shopify_cart_quantity',
@@ -118,6 +129,8 @@ async function clearCustomerCart() {
       String(updatedCart?.totalQuantity || 0)
     );
     window.dispatchEvent(new Event('cartUpdated'));
+
+    await saveCustomerCart(updatedCart);
   }
 
   async function removeItem(lineId: string) {
