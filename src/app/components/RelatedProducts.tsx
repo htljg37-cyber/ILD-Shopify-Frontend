@@ -21,8 +21,8 @@ function getTagScore(currentTags: string[], productTags: string[]) {
 }
 
 export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
-    console.log('RELATED PRODUCTS COMPONENT LOADED', currentProduct?.title);
   const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadProducts() {
@@ -31,6 +31,8 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
         setProducts(Array.isArray(data) ? data : []);
       } catch {
         setProducts([]);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -42,52 +44,19 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
 
     const currentTags = currentProduct.tags || [];
 
-    const scoredProducts = products
+    return products
       .filter((product) => product.id !== currentProduct.id)
-      .map((product) => {
-        const productTags = product.tags || [];
-        const score = getTagScore(currentTags, productTags);
-
-        return {
-          product,
-          score,
-        };
-      })
-      .sort((a, b) => b.score - a.score);
-
-    const similarProducts = scoredProducts
-      .filter((item) => item.score > 0)
+      .map((product) => ({
+        product,
+        score: getTagScore(currentTags, product.tags || []),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
       .map((item) => item.product);
-
-    const fallbackProducts = scoredProducts
-      .filter((item) => item.score === 0)
-      .map((item) => item.product);
-
-    return [...similarProducts, ...fallbackProducts].slice(0, 4);
   }, [products, currentProduct]);
 
-  console.log('RELATED PRODUCTS DATA:', {
-  currentProduct,
-  productsLength: products.length,
-  relatedProductsLength: relatedProducts.length,
-});
-
-  if (!currentProduct) return null;
-
-  if (relatedProducts.length === 0) {
-    return (
-      <section className="container relative z-10 mx-auto px-4 pb-16 md:px-6 md:pb-24">
-        <div className="rounded-3xl border border-[#EAE7DF] bg-white/80 p-8 text-center shadow-sm">
-          <p className="text-sm font-semibold text-[#717182]">
-            More products will appear here as your catalog grows.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="container relative z-10 mx-auto px-4 pb-16 md:px-6 md:pb-24">
+    <section className="container relative z-10 mx-auto border-t border-[#EAE7DF] px-4 py-16 md:px-6 md:py-24">
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/70 px-4 py-2 shadow-sm">
@@ -115,74 +84,71 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
         </a>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {relatedProducts.map((product, index) => {
-          const price = getPrice(product);
-          const shippingLabel = getShippingLabel(product);
-          const isOutOfStock =
-            product?.isOutOfStock || !product?.availableForSale;
+      {loading ? (
+        <div className="rounded-3xl border border-[#EAE7DF] bg-white/80 p-8 text-center shadow-sm">
+          <p className="text-sm font-semibold text-[#717182]">
+            Loading related products...
+          </p>
+        </div>
+      ) : relatedProducts.length === 0 ? (
+        <div className="rounded-3xl border border-[#EAE7DF] bg-white/80 p-8 text-center shadow-sm">
+          <p className="text-sm font-semibold text-[#717182]">
+            More products will appear here as your catalog grows.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {relatedProducts.map((product, index) => {
+            const price = getPrice(product);
+            const shippingLabel = getShippingLabel(product);
+            const isOutOfStock =
+              product?.isOutOfStock || !product?.availableForSale;
 
-          return (
-            <motion.a
-              key={product.id}
-              href={`/product/${product.handle}`}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ delay: index * 0.06, duration: 0.4 }}
-              className="group overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)]"
-            >
-              <div className="relative aspect-square overflow-hidden bg-[#F8F7F4]">
-                {product.featuredImage?.url ? (
-                  <img
-                    src={product.featuredImage.url}
-                    alt={product.featuredImage?.altText || product.title}
-                    className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 ${
-                      isOutOfStock ? 'grayscale opacity-70' : ''
-                    }`}
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[#717182]">
-                    No image
-                  </div>
-                )}
+            return (
+              <motion.a
+                key={product.id}
+                href={`/product/${product.handle}`}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ delay: index * 0.06, duration: 0.4 }}
+                className="group overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)]"
+              >
+                <div className="relative aspect-square overflow-hidden bg-[#F8F7F4]">
+                  {product.featuredImage?.url ? (
+                    <img
+                      src={product.featuredImage.url}
+                      alt={product.featuredImage?.altText || product.title}
+                      className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 ${
+                        isOutOfStock ? 'grayscale opacity-70' : ''
+                      }`}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[#717182]">
+                      No image
+                    </div>
+                  )}
+                </div>
 
-                {isOutOfStock ? (
-                  <div className="absolute left-4 right-4 top-4 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-white">
-                    Out of Stock
-                  </div>
-                ) : (
-                  <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-[#0F5A46] px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_20px_rgba(15,90,70,0.25)]">
-                    <Star className="h-3.5 w-3.5 fill-[#C8A45D] text-[#C8A45D]" />
-                    Related
-                  </div>
-                )}
-              </div>
+                <div className="p-5">
+                  <h3 className="mb-3 line-clamp-2 text-base font-extrabold tracking-tight text-[#111111] transition group-hover:text-[#0F5A46]">
+                    {product.title}
+                  </h3>
 
-              <div className="p-5">
-                <h3 className="mb-3 line-clamp-2 text-base font-extrabold tracking-tight text-[#111111] transition group-hover:text-[#0F5A46]">
-                  {product.title}
-                </h3>
+                  <p className="mb-3 text-2xl font-extrabold text-[#111111]">
+                    ${price.toFixed(2)}
+                  </p>
 
-                <p className="mb-3 text-2xl font-extrabold text-[#111111]">
-                  ${price.toFixed(2)}
-                </p>
-
-                <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0F5A46]/8 px-3 py-1 text-xs font-bold text-[#0F5A46]">
                     <Truck className="h-3.5 w-3.5" />
                     {shippingLabel}
                   </span>
-
-                  <span className="text-xs font-bold text-[#717182] transition group-hover:text-[#C8A45D]">
-                    View Details
-                  </span>
                 </div>
-              </div>
-            </motion.a>
-          );
-        })}
-      </div>
+              </motion.a>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
