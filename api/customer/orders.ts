@@ -59,9 +59,19 @@ async function getCustomerOrders(req: VercelRequest) {
 
   const data = await response.json();
 
-  if (data.errors || !data.data?.customer) {
-    return null;
-  }
+  if (data.errors) {
+  return {
+    error: true,
+    shopifyErrors: data.errors,
+  };
+}
+
+if (!data.data?.customer) {
+  return {
+    error: true,
+    shopifyErrors: 'Customer not found',
+  };
+}
 
   return data.data.customer.orders.edges.map((edge: any) => {
     const order = edge.node;
@@ -90,12 +100,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const orders = await getCustomerOrders(req);
 
   if (!orders) {
-    return res.status(401).json({
-      success: false,
-      orders: [],
-      error: 'Customer not authenticated or orders unavailable.',
-    });
-  }
+  return res.status(401).json({
+    success: false,
+    orders: [],
+    error: 'Customer not authenticated.',
+  });
+}
+
+if ((orders as any).error) {
+  return res.status(500).json({
+    success: false,
+    orders: [],
+    error: 'Shopify query error.',
+    details: (orders as any).shopifyErrors,
+  });
+}
 
   return res.status(200).json({
     success: true,
