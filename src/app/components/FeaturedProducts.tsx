@@ -54,6 +54,22 @@ function getPriceInfo(product: any) {
 export function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [addingId, setAddingId] = useState<string>('');
+  async function saveCustomerCart(cart: any) {
+  if (!cart?.id) return;
+
+  try {
+    await fetch('/api/cart/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cart_id: cart.id,
+        cart_data: cart,
+      }),
+    });
+  } catch {
+    console.warn('Cart could not be synced.');
+  }
+}
 
   useEffect(() => {
     async function loadProducts() {
@@ -101,14 +117,35 @@ export function FeaturedProducts() {
           'shopify_cart_quantity',
           String(newCart.totalQuantity || 1)
         );
+
+        await saveCustomerCart(newCart);
       } else {
         const updatedCart = await addToCart(cartId, variantId, 1);
 
         if (!updatedCart || updatedCart.error) {
-          alert(updatedCart?.message || 'Unable to add to cart.');
-          setAddingId('');
-          return;
-        }
+  localStorage.removeItem('shopify_cart_id');
+
+  const newCart = await createCart(variantId, 1);
+
+  if (!newCart || newCart.error) {
+    alert(newCart?.message || 'Unable to add to cart.');
+    setAddingId('');
+    return;
+  }
+
+  localStorage.setItem('shopify_cart_id', newCart.id);
+
+  localStorage.setItem(
+    'shopify_cart_quantity',
+    String(newCart.totalQuantity || 1)
+  );
+
+  await saveCustomerCart(newCart);
+
+  window.dispatchEvent(new Event('cartUpdated'));
+  setAddingId('');
+  return;
+}
 
         localStorage.setItem(
           'shopify_cart_quantity',
