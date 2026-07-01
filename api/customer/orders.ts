@@ -36,27 +36,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const graphqlEndpoint = apiConfig.graphql_api;
 
     const query = `
-      query CustomerOrders {
-        customer {
-          orders(first: 20) {
-            edges {
-              node {
-                id
-                name
-                processedAt
-                financialStatus
-                fulfillmentStatus
-                statusUrl
-                totalPrice {
-                  amount
-                  currencyCode
-                }
-              }
+  query CustomerOrders {
+    customer {
+      orders(first: 20) {
+        edges {
+          node {
+            id
+            name
+            processedAt
+            financialStatus
+            fulfillmentStatus
+            totalPrice {
+              amount
+              currencyCode
             }
           }
         }
       }
-    `;
+    }
+  }
+`;
 
     const response = await fetch(graphqlEndpoint, {
       method: 'POST',
@@ -83,15 +82,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const order = edge.node;
 
         return {
-          id: order.id,
-          name: order.name,
-          processedAt: order.processedAt,
-          financialStatus: order.financialStatus,
-          fulfillmentStatus: order.fulfillmentStatus,
-          totalPrice: order.totalPrice?.amount || '0.00',
-          currencyCode: order.totalPrice?.currencyCode || 'USD',
-          statusUrl: order.statusUrl,
-        };
+        id: order.id,
+        name: order.name,
+        processedAt: order.processedAt,
+        financialStatus: order.financialStatus,
+        fulfillmentStatus: order.fulfillmentStatus,
+        totalPrice: order.totalPrice?.amount || '0.00',
+        currencyCode: order.totalPrice?.currencyCode || 'USD',
+        statusUrl: null,
+    };
       }) || [];
 
     return res.status(200).json({
