@@ -45,7 +45,13 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
     const currentTags = currentProduct.tags || [];
 
     return products
-      .filter((product) => product.id !== currentProduct.id)
+      .filter((product) => {
+         const isCurrentProduct = product.id === currentProduct.id;
+          const isOutOfStock =
+         product?.isOutOfStock || !product?.availableForSale;
+
+       return !isCurrentProduct && !isOutOfStock;
+    })
       .map((product) => ({
         product,
         score: getTagScore(currentTags, product.tags || []),
