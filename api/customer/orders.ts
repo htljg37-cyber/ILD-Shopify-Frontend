@@ -137,9 +137,9 @@ function mapOrders(data: any) {
         }) || [];
 
       const firstTracking =
-  order.successfulFulfillments
-    ?.flatMap((fulfillment: any) => fulfillment.trackingInfo || [])
-    ?.find((tracking: any) => tracking?.number || tracking?.url) || null;
+        order.successfulFulfillments
+        ?.flatMap((fulfillment: any) => fulfillment.trackingInfo || [])
+        ?.find((tracking: any) => tracking?.number || tracking?.url) || null;
 
       return {
         id: order.id,
@@ -183,6 +183,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let response = await fetchCustomerOrders(graphqlEndpoint, accessToken);
     let data = await response.json();
+
+    console.log(JSON.stringify(data, null, 2));
 
     if (!response.ok || data.errors) {
       response = await fetchCustomerOrdersBasic(graphqlEndpoint, accessToken);
