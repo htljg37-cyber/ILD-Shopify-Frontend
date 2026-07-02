@@ -32,7 +32,7 @@ const sortOptions = [
   { label: 'Price: High to Low', value: 'price-high' },
 ];
 
-const productsPerPage = 12;
+const productsPerPage = 20;
 
 function formatMoney(amount: number) {
   return `$${amount.toFixed(2)}`;
@@ -404,10 +404,20 @@ export function CatalogPage({
   }
 
   function goToPage(page: number) {
-    const nextPage = Math.min(Math.max(page, 1), totalPages || 1);
-    setCurrentPage(nextPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  const nextPage = Math.min(Math.max(page, 1), totalPages || 1);
+  setCurrentPage(nextPage);
+
+  setTimeout(() => {
+    const productsStart = document.getElementById('catalog-results');
+
+    if (productsStart) {
+      productsStart.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }, 100);
+}
 
   async function handleQuickAdd(product: any) {
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
@@ -583,6 +593,8 @@ export function CatalogPage({
             Showing {showingStart}-{showingEnd} of {sortedProducts.length}{' '}
             product(s)
           </p>
+
+          <div id="catalog-results" className="scroll-mt-28" />
 
           {sortedProducts.length === 0 ? (
             <div className="rounded-[2rem] border border-[#EAE7DF] bg-white/85 p-10 text-center shadow-sm">
