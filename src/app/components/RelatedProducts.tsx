@@ -71,7 +71,7 @@ export function RelatedProducts({ currentProduct }: { currentProduct: any }) {
           </h2>
 
           <p className="mt-2 max-w-xl text-sm text-[#717182]">
-            Related products selected automatically from your catalog.
+            Recommended products selected automatically from your catalog.
           </p>
         </div>
 

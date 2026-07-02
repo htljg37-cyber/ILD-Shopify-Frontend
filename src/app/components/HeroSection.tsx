@@ -3,25 +3,21 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/button';
 import { Sparkles, Zap, TrendingUp, ArrowRight } from 'lucide-react';
 
-import heroCars from '../../assets/hero-cars.png';
-import heroFigures from '../../assets/hero-figures.png';
-import heroPremium from '../../assets/hero-premium.png';
-
 const heroSlides = [
   {
-    image: heroCars,
+    image: '/hero-cars.png',
     label: 'FEATURED',
     title: 'Explore Model Cars',
     description: 'Discover selected diecast and collectible vehicles',
   },
   {
-    image: heroFigures,
+    image: '/hero-figures.png',
     label: 'COLLECTIBLES',
     title: 'Action Figures & Collectibles',
     description: 'Premium figures and collectibles in one place',
   },
   {
-    image: heroPremium,
+    image: '/hero-premium.png',
     label: 'PREMIUM',
     title: 'Curated Products',
     description: 'Selected products from trusted categories',
@@ -79,7 +75,8 @@ export function HeroSection() {
 
             <p className="text-base md:text-lg text-white/70 max-w-xl">
               Shop carefully selected products from trusted categories including
-              diecast models, collectibles, and premium finds from IL Distributions LLC.
+              diecast models, collectibles, and premium finds from IL
+              Distributions LLC.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -117,18 +114,30 @@ export function HeroSection() {
 
             <div className="grid grid-cols-3 gap-5 pt-8 border-t border-white/10 max-w-xl">
               <div>
-                <div className="text-2xl md:text-3xl font-bold text-white">Curated</div>
-                <div className="text-xs md:text-sm text-white/60">Product Selection</div>
+                <div className="text-2xl md:text-3xl font-bold text-white">
+                  Curated
+                </div>
+                <div className="text-xs md:text-sm text-white/60">
+                  Product Selection
+                </div>
               </div>
 
               <div>
-                <div className="text-2xl md:text-3xl font-bold text-white">Secure</div>
-                <div className="text-xs md:text-sm text-white/60">Checkout</div>
+                <div className="text-2xl md:text-3xl font-bold text-white">
+                  Secure
+                </div>
+                <div className="text-xs md:text-sm text-white/60">
+                  Checkout
+                </div>
               </div>
 
               <div>
-                <div className="text-2xl md:text-3xl font-bold text-white">Support</div>
-                <div className="text-xs md:text-sm text-white/60">Customer Service</div>
+                <div className="text-2xl md:text-3xl font-bold text-white">
+                  Support
+                </div>
+                <div className="text-xs md:text-sm text-white/60">
+                  Customer Service
+                </div>
               </div>
             </div>
           </motion.div>
@@ -143,7 +152,6 @@ export function HeroSection() {
               <a
                 href="/catalog"
                 className="block relative z-10 rounded-2xl overflow-hidden shadow-2xl group transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_18px_45px_rgba(200,164,93,0.22)] active:translate-y-0 active:scale-[0.98]"
-
               >
                 <div className="relative w-full h-[320px] md:h-[400px] overflow-hidden">
                   <AnimatePresence mode="wait">
@@ -180,8 +188,8 @@ export function HeroSection() {
                       <button
                         key={index}
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
+                        onClick={(event) => {
+                          event.preventDefault();
                           setCurrentSlide(index);
                         }}
                         className={`h-2.5 rounded-full transition-all duration-300 ${
@@ -189,6 +197,7 @@ export function HeroSection() {
                             ? 'w-8 bg-[#C8A45D]'
                             : 'w-2.5 bg-white/50'
                         }`}
+                        aria-label={`Show slide ${index + 1}`}
                       />
                     ))}
                   </div>
