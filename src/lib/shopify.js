@@ -199,7 +199,7 @@ export async function getProductsByCollection(handle) {
         id
         title
         description
-        products(first: 50, sortKey: CREATED_AT, reverse: true) {
+        products(first: 50) {
           edges {
             node {
               ${productFields}
@@ -212,12 +212,19 @@ export async function getProductsByCollection(handle) {
 
   const data = await shopifyFetch(query, { handle });
 
+  const products =
+    data?.collection?.products?.edges?.map((item) =>
+      normalizeProduct(item.node)
+    ) || [];
+
   return {
     collection: data?.collection || null,
-    products:
-      data?.collection?.products?.edges?.map((item) =>
-        normalizeProduct(item.node)
-      ) || [],
+    products: products.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+
+      return dateB - dateA;
+    }),
   };
 }
 
