@@ -21,22 +21,21 @@ export function NewArrivalsPage() {
   }, []);
 
   const newProducts = useMemo(() => {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return [...products]
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
 
-    const filtered = products.filter((product) => {
-      if (!product.createdAt) return false;
-      return new Date(product.createdAt) >= thirtyDaysAgo;
-    });
-
-    return filtered.length > 0 ? filtered : products.slice(0, 12);
+        return dateB - dateA;
+      })
+      .slice(0, 20);
   }, [products]);
 
   return (
     <CatalogPage
       customProducts={newProducts}
       title="New Arrivals"
-      description="Explore our latest product drops, recently added items, and fresh premium finds from IL Distributions LLC."
+      description="Discover the latest products recently added to our catalog. New arrivals are automatically updated as new items are published."
     />
   );
 }

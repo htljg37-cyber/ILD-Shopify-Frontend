@@ -155,7 +155,7 @@ const collectionFields = `
 export async function getProducts() {
   const query = `
     {
-      products(first: 100) {
+      products(first: 100, sortKey: CREATED_AT, reverse: true) {
         edges {
           node {
             ${productFields}
@@ -199,7 +199,7 @@ export async function getProductsByCollection(handle) {
         id
         title
         description
-        products(first: 50) {
+        products(first: 50, sortKey: CREATED_AT, reverse: true) {
           edges {
             node {
               ${productFields}

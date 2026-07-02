@@ -104,8 +104,15 @@ export function FeaturedProducts() {
   }, []);
 
   const featuredProducts = useMemo(() => {
-    return products.slice(0, 8);
-  }, [products]);
+  return [...products]
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+
+      return dateB - dateA;
+    })
+    .slice(0, 8);
+}, [products]);
 
   async function handleQuickAdd(product: any) {
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
