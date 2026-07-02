@@ -47,6 +47,13 @@ async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string)
                   }
                 }
               }
+              fulfillments(first: 10) {
+                trackingInfo {
+                  number
+                  url
+                  company
+                }
+              }
             }
           }
         }
@@ -83,6 +90,18 @@ async function fetchCustomerOrdersBasic(
                 amount
                 currencyCode
               }
+              lineItems(first: 10) {
+                edges {
+                  node {
+                    title
+                    quantity
+                    image {
+                      url
+                      altText
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -117,6 +136,11 @@ function mapOrders(data: any) {
           };
         }) || [];
 
+      const firstTracking =
+        order.fulfillments
+          ?.flatMap((fulfillment: any) => fulfillment.trackingInfo || [])
+          ?.find((tracking: any) => tracking?.number || tracking?.url) || null;
+
       return {
         id: order.id,
         name: order.name,
@@ -126,8 +150,9 @@ function mapOrders(data: any) {
         totalPrice: order.totalPrice?.amount || '0.00',
         currencyCode: order.totalPrice?.currencyCode || 'USD',
         items,
-        trackingNumber: null,
-        trackingUrl: null,
+        trackingNumber: firstTracking?.number || null,
+        trackingUrl: firstTracking?.url || null,
+        carrier: firstTracking?.company || null,
         statusUrl: null,
       };
     }) || []

@@ -4,11 +4,19 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  ExternalLink,
   Package,
   PackageCheck,
   ShoppingBag,
   Truck,
 } from 'lucide-react';
+
+type OrderItem = {
+  title: string;
+  quantity: number;
+  image: string | null;
+  imageAlt: string;
+};
 
 type Order = {
   id: string;
@@ -19,6 +27,10 @@ type Order = {
   totalPrice: string;
   currencyCode: string;
   statusUrl?: string | null;
+  items?: OrderItem[];
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  carrier?: string | null;
 };
 
 function formatDate(date?: string) {
@@ -86,7 +98,7 @@ function OrderProgress({ step }: { step: number }) {
   ];
 
   return (
-    <div className="mt-6 rounded-2xl bg-[#F8F7F3] p-4">
+    <div className="rounded-2xl bg-[#F8F7F3] p-4">
       <div className="grid grid-cols-4 gap-2">
         {steps.map((item, index) => {
           const Icon = item.icon;
@@ -174,7 +186,8 @@ export default function OrdersPage() {
           </h2>
 
           <p className="mt-3 max-w-2xl text-[#717182]">
-            Review your purchase history, payment status, and shipping progress.
+            Review your purchase history, payment status, shipping details, and
+            tracking information.
           </p>
         </div>
 
@@ -207,6 +220,8 @@ export default function OrdersPage() {
                 order.financialStatus?.toUpperCase() === 'PAID';
               const fulfilled =
                 order.fulfillmentStatus?.toUpperCase() === 'FULFILLED';
+              const hasTracking = Boolean(order.trackingNumber);
+              const items = order.items || [];
 
               return (
                 <article
@@ -260,7 +275,48 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-[#EAE7DF] px-6 pb-6 md:px-7">
+                  {items.length > 0 && (
+                    <div className="border-t border-[#EAE7DF] px-6 py-5 md:px-7">
+                      <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.16em] text-[#0F5A46]">
+                        Items in this order
+                      </p>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {items.map((item, index) => (
+                          <div
+                            key={`${item.title}-${index}`}
+                            className="flex items-center gap-4 rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] p-3"
+                          >
+                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white">
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.imageAlt}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                  <Package className="h-6 w-6 text-[#0F5A46]" />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="min-w-0">
+                              <p className="line-clamp-2 font-bold text-[#111111]">
+                                {item.title}
+                              </p>
+
+                              <p className="mt-1 text-sm font-semibold text-[#717182]">
+                                Qty: {item.quantity}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="border-t border-[#EAE7DF] px-6 py-6 md:px-7">
                     <OrderProgress step={step} />
 
                     <div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -298,20 +354,55 @@ export default function OrdersPage() {
                           </p>
                         </div>
 
-                        <p className="font-bold text-[#111111]">
-                          {fulfilled ? 'Tracking available soon' : 'Not shipped yet'}
-                        </p>
+                        {hasTracking ? (
+                          <div className="space-y-1">
+                            <p className="font-bold text-[#111111]">
+                              {order.carrier || 'Carrier'}:{' '}
+                              {order.trackingNumber}
+                            </p>
+
+                            {order.trackingUrl && (
+                              <a
+                                href={order.trackingUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center text-sm font-bold text-[#0F5A46] hover:text-[#C8A45D]"
+                              >
+                                Track package
+                                <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="font-bold text-[#111111]">
+                            {fulfilled
+                              ? 'Tracking not available yet'
+                              : 'Not shipped yet'}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div className="mt-6 flex flex-wrap gap-3">
-                      <a
-                        href="/track-order"
-                        className="inline-flex items-center rounded-xl bg-[#0F5A46] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_28px_rgba(15,90,70,0.20)] transition hover:bg-[#126B54]"
-                      >
-                        Track Order
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </a>
+                      {order.trackingUrl ? (
+                        <a
+                          href={order.trackingUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center rounded-xl bg-[#0F5A46] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_28px_rgba(15,90,70,0.20)] transition hover:bg-[#126B54]"
+                        >
+                          Track Package
+                          <ExternalLink className="ml-2 h-4 w-4" />
+                        </a>
+                      ) : (
+                        <a
+                          href="/track-order"
+                          className="inline-flex items-center rounded-xl bg-[#0F5A46] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_28px_rgba(15,90,70,0.20)] transition hover:bg-[#126B54]"
+                        >
+                          Track Order
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </a>
+                      )}
 
                       <a
                         href="/contact"
