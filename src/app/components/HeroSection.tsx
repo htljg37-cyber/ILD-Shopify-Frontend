@@ -19,8 +19,8 @@ const heroSlides = [
   {
     image: '/hero-premium.png',
     label: 'PREMIUM',
-    title: 'Curated Products',
-    description: 'Selected products from trusted categories',
+    title: 'Preserved Flowers',
+    description: 'Discover elegant preserved roses crafted to last for years.',
   },
 ];
 
