@@ -3,9 +3,135 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 function getCookie(req: VercelRequest, name: string) {
   const cookieHeader = req.headers.cookie || '';
   const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
-
   const found = cookies.find((cookie) => cookie.startsWith(`${name}=`));
+
   return found ? decodeURIComponent(found.split('=')[1]) : null;
+}
+
+async function getCustomerApiEndpoint() {
+  const discoveryResponse = await fetch(
+    'https://account.ildistributions.com/.well-known/customer-account-api'
+  );
+
+  if (!discoveryResponse.ok) return null;
+
+  const apiConfig = await discoveryResponse.json();
+  return apiConfig.graphql_api;
+}
+
+async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string) {
+  const query = `
+    query CustomerOrders {
+      customer {
+        orders(first: 20) {
+          edges {
+            node {
+              id
+              name
+              processedAt
+              financialStatus
+              fulfillmentStatus
+              totalPrice {
+                amount
+                currencyCode
+              }
+              lineItems(first: 10) {
+                edges {
+                  node {
+                    title
+                    quantity
+                    image {
+                      url
+                      altText
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  return fetch(graphqlEndpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: accessToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query }),
+  });
+}
+
+async function fetchCustomerOrdersBasic(
+  graphqlEndpoint: string,
+  accessToken: string
+) {
+  const query = `
+    query CustomerOrders {
+      customer {
+        orders(first: 20) {
+          edges {
+            node {
+              id
+              name
+              processedAt
+              financialStatus
+              fulfillmentStatus
+              totalPrice {
+                amount
+                currencyCode
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  return fetch(graphqlEndpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: accessToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query }),
+  });
+}
+
+function mapOrders(data: any) {
+  return (
+    data?.data?.customer?.orders?.edges?.map((edge: any) => {
+      const order = edge.node;
+
+      const items =
+        order.lineItems?.edges?.map((itemEdge: any) => {
+          const item = itemEdge.node;
+
+          return {
+            title: item.title || 'Product',
+            quantity: item.quantity || 1,
+            image: item.image?.url || null,
+            imageAlt: item.image?.altText || item.title || 'Product image',
+          };
+        }) || [];
+
+      return {
+        id: order.id,
+        name: order.name,
+        processedAt: order.processedAt,
+        financialStatus: order.financialStatus,
+        fulfillmentStatus: order.fulfillmentStatus,
+        totalPrice: order.totalPrice?.amount || '0.00',
+        currencyCode: order.totalPrice?.currencyCode || 'USD',
+        items,
+        trackingNumber: null,
+        trackingUrl: null,
+        statusUrl: null,
+      };
+    }) || []
+  );
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -20,11 +146,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const discoveryResponse = await fetch(
-      'https://account.ildistributions.com/.well-known/customer-account-api'
-    );
+    const graphqlEndpoint = await getCustomerApiEndpoint();
 
-    if (!discoveryResponse.ok) {
+    if (!graphqlEndpoint) {
       return res.status(500).json({
         success: false,
         orders: [],
@@ -32,41 +156,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const apiConfig = await discoveryResponse.json();
-    const graphqlEndpoint = apiConfig.graphql_api;
+    let response = await fetchCustomerOrders(graphqlEndpoint, accessToken);
+    let data = await response.json();
 
-    const query = `
-  query CustomerOrders {
-    customer {
-      orders(first: 20) {
-        edges {
-          node {
-            id
-            name
-            processedAt
-            financialStatus
-            fulfillmentStatus
-            totalPrice {
-              amount
-              currencyCode
-            }
-          }
-        }
-      }
+    if (!response.ok || data.errors) {
+      response = await fetchCustomerOrdersBasic(graphqlEndpoint, accessToken);
+      data = await response.json();
     }
-  }
-`;
-
-    const response = await fetch(graphqlEndpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: accessToken,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    const data = await response.json();
 
     if (!response.ok || data.errors) {
       return res.status(401).json({
@@ -77,25 +173,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const orders =
-      data.data?.customer?.orders?.edges?.map((edge: any) => {
-        const order = edge.node;
-
-        return {
-        id: order.id,
-        name: order.name,
-        processedAt: order.processedAt,
-        financialStatus: order.financialStatus,
-        fulfillmentStatus: order.fulfillmentStatus,
-        totalPrice: order.totalPrice?.amount || '0.00',
-        currencyCode: order.totalPrice?.currencyCode || 'USD',
-        statusUrl: null,
-    };
-      }) || [];
-
     return res.status(200).json({
       success: true,
-      orders,
+      orders: mapOrders(data),
     });
   } catch {
     return res.status(500).json({
