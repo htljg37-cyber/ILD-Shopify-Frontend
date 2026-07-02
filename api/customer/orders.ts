@@ -47,7 +47,7 @@ async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string)
                   }
                 }
               }
-              fulfillments(first: 10) {
+              successfulFulfillments(first: 10) {
                 trackingInfo {
                   number
                   url
@@ -137,9 +137,9 @@ function mapOrders(data: any) {
         }) || [];
 
       const firstTracking =
-        order.fulfillments
-          ?.flatMap((fulfillment: any) => fulfillment.trackingInfo || [])
-          ?.find((tracking: any) => tracking?.number || tracking?.url) || null;
+  order.successfulFulfillments
+    ?.flatMap((fulfillment: any) => fulfillment.trackingInfo || [])
+    ?.find((tracking: any) => tracking?.number || tracking?.url) || null;
 
       return {
         id: order.id,
