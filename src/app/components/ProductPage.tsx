@@ -15,6 +15,11 @@ import { getProductByHandle, createCart, addToCart } from '../../lib/shopify';
 import { getShippingLabel } from '../../lib/shipping';
 import { ProductDescription } from './ProductDescription';
 import { RelatedProducts } from './RelatedProducts';
+import {
+  trackViewItem,
+  trackAddToCart,
+  trackBeginCheckout,
+} from '../../lib/analytics';
 
 const LOCAL_DELIVERY_ZIPS = [
   '92399',
@@ -81,8 +86,70 @@ export function ProductPage({ handle }: { handle: string }) {
     loadWishlistStatus();
   }, [product?.id]);
 
+  useEffect(() => {
+    if (!product?.id) return;
+
+    const variant = product?.selectedVariant || product?.variants?.[0];
+
+    const currency =
+      variant?.price?.currencyCode ||
+      product?.priceRange?.minVariantPrice?.currencyCode ||
+      'USD';
+
+    trackViewItem(getAnalyticsItem(1), currency);
+  }, [product?.id]);
+
   function getVariantId() {
     return product?.selectedVariant?.id || product?.variants?.[0]?.id || '';
+  }
+
+  function getAnalyticsItem(quantity = 1) {
+    const variant = product?.selectedVariant || product?.variants?.[0];
+
+    const itemPrice = Number(
+      variant?.price?.amount ||
+       product?.priceRange?.minVariantPrice?.amount ||
+       0
+    );
+
+    const brandTag = product?.tags?.find((tag: string) =>
+      tag.startsWith('brand_')
+    );
+
+    const categoryTag = product?.tags?.find((tag: string) =>
+      tag.startsWith('category_')
+    );
+
+    return {
+      item_id: variant?.id || product?.id || product?.handle,
+      item_name: product?.title,
+      item_brand: brandTag
+        ? brandTag.replace('brand_', '').replaceAll('-', ' ')
+        : 'IL Distributions',
+      item_category: categoryTag
+        ? categoryTag.replace('category_', '').replaceAll('-', ' ')
+        : undefined,
+      item_variant: variant?.title || undefined,
+      price: itemPrice,
+      quantity,
+    };
+  }
+
+  async function saveCustomerCart(cart: any) {
+    if (!cart?.id) return;
+
+    try {
+      await fetch('/api/cart/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart_id: cart.id,
+          cart_data: cart,
+        }),
+      });
+    } catch {
+      console.warn('Cart could not be synced.');
+    }
   }
 
   async function handleWishlistToggle() {
@@ -161,23 +228,13 @@ export function ProductPage({ handle }: { handle: string }) {
 
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
     const variantId = getVariantId();
- 
-  async function saveCustomerCart(cart: any) {
-  if (!cart?.id) return;
+    const selectedVariant =
+      product?.selectedVariant || product?.variants?.[0];
 
-  try {
-    await fetch('/api/cart/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cart_id: cart.id,
-        cart_data: cart,
-      }),
-    });
-  } catch {
-    console.warn('Cart could not be synced.');
-  }
-}
+    const currency =
+      selectedVariant?.price?.currencyCode ||
+      product?.priceRange?.minVariantPrice?.currencyCode ||
+      'USD';
 
     if (isOutOfStock) {
       alert('This product is currently out of stock.');
@@ -211,6 +268,8 @@ export function ProductPage({ handle }: { handle: string }) {
         );
         
         await saveCustomerCart(newCart);
+
+        trackAddToCart(getAnalyticsItem(1), currency);
       } else {
         const updatedCart = await addToCart(cartId, variantId, 1);
 
@@ -234,6 +293,8 @@ export function ProductPage({ handle }: { handle: string }) {
 
   await saveCustomerCart(newCart);
 
+  trackAddToCart(getAnalyticsItem(1), currency);
+
   setAddedMessage('Product added to cart.');
   window.dispatchEvent(new Event('cartUpdated'));
   setAdding(false);
@@ -246,6 +307,8 @@ export function ProductPage({ handle }: { handle: string }) {
         );
         
         await saveCustomerCart(updatedCart);
+
+        trackAddToCart(getAnalyticsItem(1), currency);
       }
 
       setAddedMessage('Product added to cart.');
@@ -263,6 +326,17 @@ export function ProductPage({ handle }: { handle: string }) {
 
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
     const variantId = getVariantId();
+
+    const selectedVariant =
+      product?.selectedVariant || product?.variants?.[0];
+
+    const currency =
+      selectedVariant?.price?.currencyCode ||
+      product?.priceRange?.minVariantPrice?.currencyCode ||
+      'USD';
+
+    const item = getAnalyticsItem(1);
+    const checkoutValue = Number(item.price || 0);
 
     if (isOutOfStock) {
       alert('This product is currently out of stock.');
@@ -286,7 +360,11 @@ export function ProductPage({ handle }: { handle: string }) {
     }
 
     if (cart?.checkoutUrl) {
-      window.location.href = cart.checkoutUrl;
+      trackBeginCheckout([item], checkoutValue, currency);
+
+      window.setTimeout(() => {
+        window.location.href = cart.checkoutUrl;
+      }, 250);
     } else {
       alert('Unable to start checkout.');
     }
