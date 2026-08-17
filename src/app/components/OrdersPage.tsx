@@ -24,6 +24,7 @@ type Order = {
   processedAt: string;
   financialStatus: string;
   fulfillmentStatus: string | null;
+  shipmentStatus?: string | null;
   totalPrice: string;
   currencyCode: string;
   statusUrl?: string | null;
@@ -54,6 +55,47 @@ function normalizeStatus(status?: string | null) {
     .replaceAll('_', ' ')
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getShippingStatus(order: Order) {
+  const shipmentStatus = order.shipmentStatus?.toUpperCase();
+
+  switch (shipmentStatus) {
+    case 'DELIVERED':
+      return 'Order delivered';
+
+    case 'OUT_FOR_DELIVERY':
+      return 'Out for delivery';
+
+    case 'IN_TRANSIT':
+    case 'CARRIER_PICKED_UP':
+      return 'In transit';
+
+    case 'DELAYED':
+      return 'Shipment delayed';
+
+    case 'ATTEMPTED_DELIVERY':
+      return 'Delivery attempted';
+
+    case 'READY_FOR_PICKUP':
+      return 'Ready for pickup';
+
+    case 'PICKED_UP':
+      return 'Order picked up';
+
+    case 'FAILURE':
+      return 'Delivery issue';
+
+    case 'CONFIRMED':
+    case 'LABEL_PRINTED':
+    case 'LABEL_PURCHASED':
+      return 'Order shipped';
+
+    default:
+      return order.fulfillmentStatus?.toUpperCase() === 'FULFILLED'
+        ? 'Order shipped'
+        : 'Preparing shipment';
+  }
 }
 
 function getOrderStep(order: Order) {
@@ -89,12 +131,24 @@ function StatusPill({
   );
 }
 
-function OrderProgress({ step }: { step: number }) {
+function OrderProgress({
+  step,
+  shipmentStatus,
+}: {
+  step: number;
+  shipmentStatus?: string | null;
+}) {
+  const delivered =
+    shipmentStatus?.toUpperCase() === 'DELIVERED';
+
   const steps = [
     { label: 'Placed', icon: ShoppingBag },
     { label: 'Paid', icon: CreditCard },
     { label: 'Preparing', icon: Package },
-    { label: 'Shipped', icon: Truck },
+    {
+      label: delivered ? 'Delivered' : 'Shipped',
+      icon: Truck,
+    },
   ];
 
   return (
@@ -220,9 +274,14 @@ export default function OrdersPage() {
                 order.financialStatus?.toUpperCase() === 'PAID';
               const fulfilled =
                 order.fulfillmentStatus?.toUpperCase() === 'FULFILLED';
-              const hasTracking = Boolean(order.trackingNumber);
-              const items = order.items || [];
 
+              const shippingStatus = getShippingStatus(order);
+
+              const hasTracking = Boolean(
+                order.trackingNumber || order.trackingUrl
+              );
+              const items = order.items || [];
+              
               return (
                 <article
                   key={order.id}
@@ -241,8 +300,16 @@ export default function OrdersPage() {
                           </h3>
 
                           <StatusPill
-                            label={fulfilled ? 'Shipped' : 'Preparing'}
-                            type={fulfilled ? 'success' : 'warning'}
+                            label={shippingStatus}
+                            type={
+                              ['DELAYED', 'ATTEMPTED_DELIVERY', 'FAILURE'].includes(
+                                order.shipmentStatus?.toUpperCase() || ''
+                              )
+                                ? 'warning'
+                                : fulfilled
+                                  ? 'success'
+                                  : 'warning'
+                            }
                           />
                         </div>
 
@@ -317,7 +384,10 @@ export default function OrdersPage() {
                   )}
 
                   <div className="border-t border-[#EAE7DF] px-6 py-6 md:px-7">
-                    <OrderProgress step={step} />
+                    <OrderProgress
+                      step={step}
+                      shipmentStatus={order.shipmentStatus}
+                    />
 
                     <div className="mt-6 grid gap-3 md:grid-cols-3">
                       <div className="rounded-2xl border border-[#EAE7DF] bg-white p-4">
@@ -342,7 +412,7 @@ export default function OrdersPage() {
                         </div>
 
                         <p className="font-bold text-[#111111]">
-                          {fulfilled ? 'Order shipped' : 'Preparing shipment'}
+                          {shippingStatus}
                         </p>
                       </div>
 

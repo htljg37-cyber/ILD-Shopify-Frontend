@@ -19,7 +19,10 @@ async function getCustomerApiEndpoint() {
   return apiConfig.graphql_api;
 }
 
-async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string) {
+async function fetchCustomerOrders(
+  graphqlEndpoint: string,
+  accessToken: string
+) {
   const query = `
     query CustomerOrders {
       customer {
@@ -31,10 +34,13 @@ async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string)
               processedAt
               financialStatus
               fulfillmentStatus
+              statusPageUrl
+
               totalPrice {
                 amount
                 currencyCode
               }
+
               lineItems(first: 10) {
                 edges {
                   node {
@@ -47,9 +53,11 @@ async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string)
                   }
                 }
               }
-              statusPageUrl
+
               fulfillments(first: 10) {
                 nodes {
+                  latestShipmentStatus
+
                   trackingInformation {
                     number
                     url
@@ -57,66 +65,6 @@ async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string)
                   }
                 }
               }
-              statusPageUrl
-fulfillments(first: 10) {
-  nodes {
-    trackingInformation {
-      number
-      url
-      company
-    }
-  }
-}
-              statusPageUrl
-fulfillments(first: 10) {
-  nodes {
-    trackingInformation {
-      number
-      url
-      company
-    }
-  }
-}
-              statusPageUrl
-fulfillments(first: 10) {
-  nodes {
-    trackingInformation {
-      number
-      url
-      company
-    }
-  }
-}
-              statusPageUrl
-fulfillments(first: 10) {
-  nodes {
-    trackingInformation {
-      number
-      url
-      company
-    }
-  }
-}
-              statusPageUrl
-fulfillments(first: 10) {
-  nodes {
-    trackingInformation {
-      number
-      url
-      company
-    }
-  }
-}
-              statusPageUrl
-fulfillments(first: 10) {
-  nodes {
-    trackingInformation {
-      number
-      url
-      company
-    }
-  }
-}
             }
           }
         }
@@ -130,7 +78,7 @@ fulfillments(first: 10) {
       Authorization: accessToken,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({query}),
   });
 }
 
@@ -199,15 +147,20 @@ function mapOrders(data: any) {
           };
         }) || [];
 
-      const firstTracking =
-        order.fulfillments?.nodes
-          ?.flatMap(
-            (fulfillment: any) =>
-              fulfillment.trackingInformation || []
-          )
-          ?.find(
-            (tracking: any) =>
-              tracking?.number || tracking?.url
+        const fulfillments = order.fulfillments?.nodes || [];
+
+        const fulfillmentWithTracking =
+          fulfillments.find((fulfillment: any) =>
+            fulfillment.trackingInformation?.some(
+              (tracking: any) => tracking?.number || tracking?.url
+            )
+          ) ||
+          fulfillments[0] ||
+          null;
+
+        const firstTracking =
+          fulfillmentWithTracking?.trackingInformation?.find(
+            (tracking: any) => tracking?.number || tracking?.url
           ) || null;
 
       return {
@@ -216,6 +169,8 @@ function mapOrders(data: any) {
         processedAt: order.processedAt,
         financialStatus: order.financialStatus,
         fulfillmentStatus: order.fulfillmentStatus,
+        shipmentStatus:
+          fulfillmentWithTracking?.latestShipmentStatus || null,
         totalPrice: order.totalPrice?.amount || '0.00',
         currencyCode: order.totalPrice?.currencyCode || 'USD',
         items,
@@ -272,6 +227,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       success: true,
       orders: mapOrders(data),
+
     });
   } catch {
     return res.status(500).json({
