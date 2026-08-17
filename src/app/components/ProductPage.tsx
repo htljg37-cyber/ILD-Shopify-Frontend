@@ -274,32 +274,31 @@ export function ProductPage({ handle }: { handle: string }) {
         const updatedCart = await addToCart(cartId, variantId, 1);
 
         if (!updatedCart || updatedCart.error) {
-  localStorage.removeItem('shopify_cart_id');
+          localStorage.removeItem('shopify_cart_id');
 
-  const newCart = await createCart(variantId, 1);
+          const newCart = await createCart(variantId, 1);
 
-  if (!newCart || newCart.error) {
-    alert(newCart?.message || 'Unable to add to cart.');
-    setAdding(false);
-    return;
-  }
+          if (!newCart || newCart.error) {
+            alert(newCart?.message || 'Unable to add to cart.');
+            setAdding(false);
+            return;
+          }
 
-  localStorage.setItem('shopify_cart_id', newCart.id);
+          localStorage.setItem('shopify_cart_id', newCart.id);
+          localStorage.setItem(
+            'shopify_cart_quantity',
+            String(newCart.totalQuantity || 1)
+          );
 
-  localStorage.setItem(
-    'shopify_cart_quantity',
-    String(newCart.totalQuantity || 1)
-  );
+          await saveCustomerCart(newCart);
 
-  await saveCustomerCart(newCart);
+          trackAddToCart(getAnalyticsItem(1), currency);
 
-  trackAddToCart(getAnalyticsItem(1), currency);
-
-  setAddedMessage('Product added to cart.');
-  window.dispatchEvent(new Event('cartUpdated'));
-  setAdding(false);
-  return;
-}
+          setAddedMessage('Product added to cart.');
+          window.dispatchEvent(new Event('cartUpdated'));
+          setAdding(false);
+          return;
+        }
 
         localStorage.setItem(
           'shopify_cart_quantity',

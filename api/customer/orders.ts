@@ -47,13 +47,76 @@ async function fetchCustomerOrders(graphqlEndpoint: string, accessToken: string)
                   }
                 }
               }
-              successfulFulfillments(first: 10) {
-                trackingInfo {
-                  number
-                  url
-                  company
+              statusPageUrl
+              fulfillments(first: 10) {
+                nodes {
+                  trackingInformation {
+                    number
+                    url
+                    company
+                  }
                 }
               }
+              statusPageUrl
+fulfillments(first: 10) {
+  nodes {
+    trackingInformation {
+      number
+      url
+      company
+    }
+  }
+}
+              statusPageUrl
+fulfillments(first: 10) {
+  nodes {
+    trackingInformation {
+      number
+      url
+      company
+    }
+  }
+}
+              statusPageUrl
+fulfillments(first: 10) {
+  nodes {
+    trackingInformation {
+      number
+      url
+      company
+    }
+  }
+}
+              statusPageUrl
+fulfillments(first: 10) {
+  nodes {
+    trackingInformation {
+      number
+      url
+      company
+    }
+  }
+}
+              statusPageUrl
+fulfillments(first: 10) {
+  nodes {
+    trackingInformation {
+      number
+      url
+      company
+    }
+  }
+}
+              statusPageUrl
+fulfillments(first: 10) {
+  nodes {
+    trackingInformation {
+      number
+      url
+      company
+    }
+  }
+}
             }
           }
         }
@@ -137,9 +200,15 @@ function mapOrders(data: any) {
         }) || [];
 
       const firstTracking =
-        order.successfulFulfillments
-        ?.flatMap((fulfillment: any) => fulfillment.trackingInfo || [])
-        ?.find((tracking: any) => tracking?.number || tracking?.url) || null;
+        order.fulfillments?.nodes
+          ?.flatMap(
+            (fulfillment: any) =>
+              fulfillment.trackingInformation || []
+          )
+          ?.find(
+            (tracking: any) =>
+              tracking?.number || tracking?.url
+          ) || null;
 
       return {
         id: order.id,
@@ -153,7 +222,7 @@ function mapOrders(data: any) {
         trackingNumber: firstTracking?.number || null,
         trackingUrl: firstTracking?.url || null,
         carrier: firstTracking?.company || null,
-        statusUrl: null,
+        statusUrl: order.statusPageUrl || null,
       };
     }) || []
   );
