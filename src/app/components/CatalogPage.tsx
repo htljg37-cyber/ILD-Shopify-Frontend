@@ -112,6 +112,37 @@ function productMatchesSearchAndBrand(
   return matchesBrand && matchesSearch;
 }
 
+function isProductOutOfStock(product: any) {
+  return Boolean(
+    product?.isOutOfStock || !product?.availableForSale
+  );
+}
+
+function productMatchesSelectedFilter(
+  product: any,
+  prefix: string,
+  selectedValue: string
+) {
+  if (!selectedValue) return true;
+
+  if (prefix === 'stock_') {
+    const isOutOfStock = isProductOutOfStock(product);
+
+    if (selectedValue === 'stock_ready') {
+      return !isOutOfStock;
+    }
+
+    if (selectedValue === 'stock_out_of_stock') {
+      return isOutOfStock;
+    }
+
+    return true;
+  }
+
+  const tags = (product.tags || []) as string[];
+  return tags.includes(selectedValue);
+}
+
 type CatalogPageProps = {
   customProducts?: any[];
   title?: string;
@@ -279,19 +310,19 @@ export function CatalogPage({
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const tags = (product.tags || []) as string[];
-
       const matchesSearchAndBrand = productMatchesSearchAndBrand(
         product,
         searchQuery,
         brandFilter
       );
 
-      const matchesFilters = Object.values(selectedFilters).every(
-        (selectedTag) => {
-          if (!selectedTag) return true;
-          return tags.includes(selectedTag);
-        }
+      const matchesFilters = Object.entries(selectedFilters).every(
+        ([prefix, selectedValue]) =>
+          productMatchesSelectedFilter(
+            product,
+            prefix,
+            selectedValue
+          )
       );
 
       return matchesSearchAndBrand && matchesFilters;
@@ -301,34 +332,63 @@ export function CatalogPage({
   const availableFilters = useMemo(() => {
     return filterGroups.map((group) => {
       const productsForThisGroup = products.filter((product) => {
-        const tags = (product.tags || []) as string[];
-
         const matchesSearchAndBrand = productMatchesSearchAndBrand(
           product,
           searchQuery,
           brandFilter
         );
-
-        const matchesOtherFilters = Object.entries(selectedFilters).every(
-          ([prefix, selectedTag]) => {
-            if (!selectedTag) return true;
-            if (prefix === group.prefix) return true;
-            return tags.includes(selectedTag);
+      
+        const matchesOtherFilters = Object.entries(
+          selectedFilters
+        ).every(([prefix, selectedValue]) => {
+          if (!selectedValue) return true;
+        
+          if (prefix === group.prefix) {
+            return true;
           }
-        );
-
+        
+          return productMatchesSelectedFilter(
+            product,
+            prefix,
+            selectedValue
+          );
+        });
+      
         return matchesSearchAndBrand && matchesOtherFilters;
       });
-
-      const options = Array.from(
-        new Set(
-          productsForThisGroup
-            .flatMap((product) => (product.tags || []) as string[])
-            .filter((tag) => tag.startsWith(group.prefix))
-        )
-      ) as string[];
-
-      return { ...group, options };
+    
+      let options: string[] = [];
+    
+      if (group.prefix === 'stock_') {
+        const hasAvailableProducts = productsForThisGroup.some(
+          (product) => !isProductOutOfStock(product)
+        );
+      
+        const hasOutOfStockProducts = productsForThisGroup.some(
+          (product) => isProductOutOfStock(product)
+        );
+      
+        if (hasAvailableProducts) {
+          options.push('stock_ready');
+        }
+      
+        if (hasOutOfStockProducts) {
+          options.push('stock_out_of_stock');
+        }
+      } else {
+        options = Array.from(
+          new Set(
+            productsForThisGroup
+              .flatMap(
+                (product) =>
+                  (product.tags || []) as string[]
+              )
+              .filter((tag) => tag.startsWith(group.prefix))
+          )
+        ) as string[];
+      }
+    
+      return {...group, options};
     });
   }, [products, searchQuery, brandFilter, selectedFilters]);
 
@@ -420,7 +480,7 @@ export function CatalogPage({
 }
 
   async function handleQuickAdd(product: any) {
-    const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
+    const isOutOfStock = !product?.availableForSale;
     const variantId = product?.selectedVariant?.id || product?.variants?.[0]?.id;
 
     if (isOutOfStock) {
@@ -607,8 +667,7 @@ export function CatalogPage({
             <>
               <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
                 {paginatedProducts.map((product) => {
-                  const isOutOfStock =
-                    product?.isOutOfStock || !product?.availableForSale;
+                  const isOutOfStock = !product?.availableForSale;
 
                   const {
                     price,
