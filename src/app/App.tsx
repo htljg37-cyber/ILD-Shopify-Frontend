@@ -58,11 +58,11 @@ function HomePage() {
       <HeroSection />
 
       <motion.div {...revealSection}>
-        <CategoryCards />
+        <FeaturedProducts />
       </motion.div>
 
       <motion.div {...revealSection}>
-        <FeaturedProducts />
+        <CategoryCards />
       </motion.div>
 
       <motion.div {...revealSection}>

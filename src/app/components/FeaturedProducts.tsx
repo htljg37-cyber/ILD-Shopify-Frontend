@@ -111,8 +111,11 @@ export function FeaturedProducts() {
 
       return dateB - dateA;
     })
-    .slice(0, 8);
+    .slice(0, 12);
 }, [products]);
+
+const mainProducts = featuredProducts.slice(0, 8);
+const previewProducts = featuredProducts.slice(8, 12);
 
   async function handleQuickAdd(product: any) {
     const isOutOfStock = product?.isOutOfStock || !product?.availableForSale;
@@ -236,15 +239,6 @@ export function FeaturedProducts() {
             </motion.p>
           </div>
 
-          <a href="/catalog">
-            <Button
-              variant="outline"
-              className="group border-[#0F5A46] text-[#0F5A46] bg-white/70 hover:bg-[#0F5A46] hover:text-white transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(15,90,70,0.18)]"
-            >
-              View All Products
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          </a>
         </div>
 
         {featuredProducts.length === 0 ? (
@@ -252,8 +246,10 @@ export function FeaturedProducts() {
             <p className="text-[#717182]">No featured products found yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
-            {featuredProducts.map((product, index) => {
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+        
+            {mainProducts.map((product, index) => {
               const isOutOfStock =
                 product?.isOutOfStock || !product?.availableForSale;
 
@@ -278,6 +274,12 @@ export function FeaturedProducts() {
                   transition={{ delay: index * 0.06, duration: 0.45 }}
                   className={`group relative block overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 backdrop-blur-sm shadow-[0_10px_30px_rgba(17,17,17,0.04)] ${
                     isOutOfStock ? 'opacity-80' : premiumHover
+                  } ${
+                    index >= 4
+                      ? 'hidden lg:block'
+                      : index >= 2
+                        ? 'hidden sm:block'
+                        : ''
                   }`}
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_50%_0%,rgba(200,164,93,0.18),transparent_35%)]" />
@@ -389,7 +391,52 @@ export function FeaturedProducts() {
               );
             })}
           </div>
-        )}
+
+          {previewProducts.length > 0 && (
+            <div className="relative mt-8 h-64 overflow-hidden rounded-[2rem]">
+              <div className="pointer-events-none grid grid-cols-1 gap-7 opacity-45 sm:grid-cols-2 lg:grid-cols-4 [mask-image:linear-gradient(to_bottom,black_5%,transparent_95%)]">
+                {previewProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 shadow-[0_10px_30px_rgba(17,17,17,0.04)]"
+                  >
+                    <div className="aspect-square overflow-hidden bg-[#F8F7F4]">
+                      {product.featuredImage?.url ? (
+                        <img
+                          src={product.featuredImage.url}
+                          alt={
+                            product.featuredImage?.altText ||
+                            product.title
+                          }
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[#717182]">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-b from-transparent via-[#F6F4EF]/35 to-[#F6F4EF]" />
+
+              <div className="absolute inset-x-0 top-8 z-20 flex justify-center px-4">
+                <a
+                  href="/catalog"
+                  className="group inline-flex items-center rounded-2xl bg-[#0F5A46] px-7 py-4 text-base font-bold text-white shadow-[0_16px_38px_rgba(15,90,70,0.32)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#126B54] hover:shadow-[0_20px_48px_rgba(15,90,70,0.40)]"
+                >
+                  Explore Full Inventory
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+              </div>
+            </div>
+          )}
+        </>
+      )}   
+        
+        
       </div>
 
       <AnimatePresence>
