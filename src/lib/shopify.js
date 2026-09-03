@@ -81,6 +81,75 @@ function normalizeCollection(collection) {
   };
 }
 
+function getMetaobjectField(fields = [], key) {
+  return fields.find((field) => field.key === key) || null;
+}
+
+function normalizeCollectibleBrand(metaobject) {
+  if (!metaobject) return null;
+
+  const brandNameField = getMetaobjectField(
+    metaobject.fields,
+    "brand_name"
+  );
+  const shopifyTagField = getMetaobjectField(
+    metaobject.fields,
+    "shopify_tag"
+  );
+  const logoField = getMetaobjectField(metaobject.fields, "logo");
+  const logoImage = logoField?.reference?.image || null;
+
+  if (!brandNameField?.value || !shopifyTagField?.value) {
+    return null;
+  }
+
+  return {
+    id: metaobject.id,
+    handle: metaobject.handle,
+    name: brandNameField.value,
+    shopifyTag: shopifyTagField.value,
+    logo: logoImage
+      ? {
+          url: logoImage.url,
+          altText: logoImage.altText || `${brandNameField.value} logo`,
+          width: logoImage.width || null,
+          height: logoImage.height || null,
+        }
+      : null,
+  };
+}
+
+function normalizeVehicleMake(metaobject) {
+  if (!metaobject) return null;
+
+  const makeNameField = getMetaobjectField(metaobject.fields, "make_name");
+  const shopifyTagField = getMetaobjectField(
+    metaobject.fields,
+    "shopify_tag"
+  );
+  const logoField = getMetaobjectField(metaobject.fields, "logo");
+  const logoImage = logoField?.reference?.image || null;
+
+  if (!makeNameField?.value || !shopifyTagField?.value) {
+    return null;
+  }
+
+  return {
+    id: metaobject.id,
+    handle: metaobject.handle,
+    name: makeNameField.value,
+    shopifyTag: shopifyTagField.value,
+    logo: logoImage
+      ? {
+          url: logoImage.url,
+          altText: logoImage.altText || `${makeNameField.value} logo`,
+          width: logoImage.width || null,
+          height: logoImage.height || null,
+        }
+      : null,
+  };
+}
+
 const productFields = `
   id
   title
@@ -189,6 +258,80 @@ export async function getCollections() {
     data?.collections?.edges
       ?.map((item) => normalizeCollection(item.node))
       ?.filter((collection) => collection && collection.handle !== "frontpage") || []
+  );
+}
+
+export async function getCollectibleBrands() {
+  const query = `
+    query getCollectibleBrands {
+      metaobjects(type: "collectible_brand", first: 100) {
+        edges {
+          node {
+            id
+            handle
+            fields {
+              key
+              value
+              reference {
+                ... on MediaImage {
+                  image {
+                    url
+                    altText
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch(query);
+
+  return (
+    data?.metaobjects?.edges
+      ?.map((item) => normalizeCollectibleBrand(item.node))
+      ?.filter(Boolean) || []
+  );
+}
+
+export async function getVehicleMakes() {
+  const query = `
+    query getVehicleMakes {
+      metaobjects(type: "vehicle_make", first: 100) {
+        edges {
+          node {
+            id
+            handle
+            fields {
+              key
+              value
+              reference {
+                ... on MediaImage {
+                  image {
+                    url
+                    altText
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch(query);
+
+  return (
+    data?.metaobjects?.edges
+      ?.map((item) => normalizeVehicleMake(item.node))
+      ?.filter(Boolean) || []
   );
 }
 

@@ -50,21 +50,24 @@ function getCustomerInitials(customer: any) {
     .toUpperCase();
 }
 
-const navItems = [
-  ['Home', '/'],
+const primaryNavItems = [
   ['Catalog', '/catalog'],
-  ['New Arrivals', '/new-arrivals'],
   ['Collections', '/collections'],
   ['Brands', '/brands'],
   ['Track Order', '/track-order'],
   ['Contact', '/contact'],
 ];
 
-const navLinkClass =
-  'relative px-1 py-2 text-[15px] font-semibold tracking-[0.01em] text-[#111111]/90 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:text-[#0F5A46] after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:rounded-full after:bg-gradient-to-r after:from-[#0F5A46] after:to-[#C8A45D] after:transition-all after:duration-300 hover:after:w-full';
+function getNavLinkClass(isActive: boolean) {
+  return `relative rounded-full px-4 py-2.5 text-sm font-bold transition-all duration-300 ease-out ${
+    isActive
+      ? 'bg-white text-[#0F5A46] shadow-[0_8px_22px_rgba(15,90,70,0.12)] ring-1 ring-[#0F5A46]/10'
+      : 'text-[#111111]/80 hover:-translate-y-0.5 hover:bg-white/75 hover:text-[#0F5A46]'
+  }`;
+}
 
 const iconButtonClass =
-  'relative hidden md:flex transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.04] hover:bg-[#F5F5F5] hover:text-[#0F5A46] hover:shadow-[0_10px_24px_rgba(15,90,70,0.12)] active:translate-y-0 active:scale-[0.96]';
+  'relative hidden rounded-full border border-[#E7E2D8] bg-white md:flex transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.04] hover:border-[#0F5A46]/20 hover:bg-[#F7F5F0] hover:text-[#0F5A46] hover:shadow-[0_10px_24px_rgba(15,90,70,0.12)] active:translate-y-0 active:scale-[0.96]';
 
 function SearchBox({
   mobile = false,
@@ -80,8 +83,8 @@ function SearchBox({
   setMobileMenuOpen: (value: boolean) => void;
 }) {
   return (
-    <div className="relative w-full group">
-      <div className="flex items-center gap-2 bg-[#F5F5F5] rounded-xl px-4 py-3 transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:bg-white group-hover:shadow-[0_12px_30px_rgba(15,90,70,0.12)] group-hover:ring-1 group-hover:ring-[#0F5A46]/15 focus-within:bg-white focus-within:shadow-[0_12px_30px_rgba(15,90,70,0.16)] focus-within:ring-1 focus-within:ring-[#0F5A46]/25">
+    <div className="group relative w-full">
+      <div className="flex items-center gap-3 rounded-full border border-[#E7E2D8] bg-[#F7F5F0] px-4 py-3 transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:border-[#0F5A46]/20 group-hover:bg-white group-hover:shadow-[0_12px_30px_rgba(15,90,70,0.10)] focus-within:border-[#0F5A46]/25 focus-within:bg-white focus-within:shadow-[0_12px_30px_rgba(15,90,70,0.14)] focus-within:ring-4 focus-within:ring-[#0F5A46]/5">
         <Search className="h-4 w-4 text-[#717182] transition-all duration-300 group-hover:text-[#0F5A46] group-hover:scale-110" />
 
         <Input
@@ -105,7 +108,7 @@ function SearchBox({
         <div
           className={`${
             mobile ? 'relative mt-3' : 'absolute right-0 top-14'
-          } z-[9999] w-full md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden`}
+          } z-[9999] w-full overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-2xl md:w-96`}
         >
           {searchResults.length > 0 ? (
             <>
@@ -178,9 +181,22 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState('');
   const [customer, setCustomer] = useState<any>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [currentPath, setCurrentPath] = useState(() =>
+    typeof window !== 'undefined' ? window.location.pathname : '/'
+  );
 
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const customerInitials = getCustomerInitials(customer);
+
+  useEffect(() => {
+    function updateCurrentPath() {
+      setCurrentPath(window.location.pathname);
+    }
+
+    window.addEventListener('popstate', updateCurrentPath);
+
+    return () => window.removeEventListener('popstate', updateCurrentPath);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
@@ -308,13 +324,13 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-white/40 bg-white/80 backdrop-blur-xl shadow-[0_8px_30px_rgba(17,17,17,0.06)] transition-all duration-300">
-        <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 transition-all duration-300">
-          <div className="flex items-center gap-5 lg:gap-8">
+      <header className="sticky top-0 z-40 w-full border-b border-[#E7E2D8] bg-white shadow-sm">
+        <div className="relative mx-auto flex h-[78px] w-full max-w-[1680px] items-center justify-between px-4 transition-all duration-300 sm:px-6 lg:px-10">
+          <div className="z-20 flex items-center gap-5 lg:gap-8">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+              className="xl:hidden transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="h-6 w-6 text-[#111111]" />
@@ -331,17 +347,29 @@ export function Header() {
               />
             </a>
 
-            <nav className="hidden lg:flex items-center gap-7">
-              {navItems.map(([label, href]) => (
-                <a key={href} href={href} className={navLinkClass}>
-                  {label}
-                </a>
-              ))}
+            <nav className="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-[#E7E2D8] bg-[#F7F5F0]/90 p-1.5 xl:flex">
+              {primaryNavItems.map(([label, href]) => {
+                const isActive =
+                  href === '/'
+                    ? currentPath === '/'
+                    : currentPath.startsWith(href);
+
+                return (
+                  <a
+                    key={href}
+                    href={href}
+                    className={getNavLinkClass(isActive)}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    {label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden md:block w-64">
+            <div className="hidden w-56 md:block min-[1500px]:w-72">
               <SearchBox
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
@@ -468,7 +496,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.04] hover:bg-[#F5F5F5] hover:text-[#0F5A46] hover:shadow-[0_10px_24px_rgba(15,90,70,0.12)] active:translate-y-0 active:scale-[0.96]"
+                className="relative rounded-full border border-[#E7E2D8] bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.04] hover:border-[#0F5A46]/20 hover:bg-[#F7F5F0] hover:text-[#0F5A46] hover:shadow-[0_10px_24px_rgba(15,90,70,0.12)] active:translate-y-0 active:scale-[0.96]"
               >
                 <ShoppingCart className="h-5 w-5 text-[#111111] transition-all duration-300" />
 
@@ -485,7 +513,7 @@ export function Header() {
         {mobileMenuOpen && (
           <motion.div
             key="mobile-menu-wrapper"
-            className="fixed inset-0 z-[9999] lg:hidden"
+            className="fixed inset-0 z-[9999] xl:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -568,7 +596,7 @@ export function Header() {
 
               <nav className="flex flex-col gap-1">
                 {[
-                  ...navItems,
+                  ...primaryNavItems,
                   [
                     'My Account',
                     customer
@@ -589,7 +617,13 @@ export function Header() {
                       duration: 0.28,
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className="block rounded-xl px-4 py-4 text-base font-semibold tracking-tight text-[#111111] transition-all duration-300 hover:translate-x-1 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+                    className={`block rounded-xl px-4 py-4 text-base font-semibold tracking-tight transition-all duration-300 hover:translate-x-1 hover:bg-[#F5F5F5] hover:text-[#0F5A46] ${
+                      (href === '/'
+                        ? currentPath === '/'
+                        : currentPath.startsWith(href))
+                        ? 'bg-[#0F5A46]/10 text-[#0F5A46]'
+                        : 'text-[#111111]'
+                    }`}
                   >
                     {label}
                   </motion.a>

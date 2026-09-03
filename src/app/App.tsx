@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
-import type { MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MouseEvent, MutableRefObject } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Header } from './components/Header';
-import { HeroSection } from './components/HeroSection';
 import { CategoryCards } from './components/CategoryCards';
+import { TrustBar } from './components/TrustBar';
+import { CollectibleBrands } from './components/CollectibleBrands';
 import { FeaturedProducts } from './components/FeaturedProducts';
 import { WhyShopSection } from './components/WhyShopSection';
-import { NewsletterSection } from './components/NewsletterSection';
 import { Footer } from './components/Footer';
 import { PageHero } from './components/PageHero';
 import { CollectionProducts } from './components/CollectionProducts';
+import { CollectionsPage } from './components/CollectionsPage';
 import { ProductPage } from './components/ProductPage';
 import CartPage from './components/CartPage';
+import { ScaleGuide } from './components/ScaleGuide';
+import { VehicleMakes } from './components/VehicleMakes';
 import { CatalogPage } from './components/CatalogPage';
 import { NewArrivalsPage } from './components/NewArrivalsPage';
 import { BrandsPage } from './components/BrandsPage';
@@ -24,7 +27,6 @@ import { ReturnsPolicyPage } from './components/ReturnsPolicyPage';
 import { AccountPage } from './components/AccountPage';
 import { WishlistPage } from './components/WishlistPage';
 import OrdersPage from './components/OrdersPage';
-import { getCollections } from '../lib/shopify';
 
 const revealSection = {
   initial: { opacity: 0, y: 32, filter: 'blur(6px)' },
@@ -46,6 +48,11 @@ const pageAnimation = {
   },
 };
 
+const NAVIGATION_DELAY_MS = 320;
+const DEFAULT_TRANSITION_MS = 900;
+const MIN_LOADER_VISIBLE_MS = 650;
+const PRODUCT_TRANSITION_TIMEOUT_MS = 12000;
+
 function navigateTo(path: string) {
   window.history.pushState({}, '', path);
   window.dispatchEvent(new PopStateEvent('popstate'));
@@ -55,149 +62,55 @@ function navigateTo(path: string) {
 function HomePage() {
   return (
     <>
-      <HeroSection />
+      <CategoryCards />
+
+      <TrustBar />
+
+      <motion.div {...revealSection}>
+        <CollectibleBrands />
+      </motion.div>
 
       <motion.div {...revealSection}>
         <FeaturedProducts />
       </motion.div>
 
       <motion.div {...revealSection}>
-        <CategoryCards />
+        <VehicleMakes />
+      </motion.div>
+
+      <motion.div {...revealSection}>
+        <ScaleGuide />
       </motion.div>
 
       <motion.div {...revealSection}>
         <WhyShopSection />
       </motion.div>
-
-      <motion.div {...revealSection}>
-        <NewsletterSection />
-      </motion.div>
-    </>
-  );
-}
-
-function CollectionsPage() {
-  const [collections, setCollections] = useState<any[]>([]);
-
-  useEffect(() => {
-    async function loadCollections() {
-      const data = await getCollections();
-      setCollections(data);
-    }
-
-    loadCollections();
-  }, []);
-
-  return (
-    <>
-      <PageHero
-        title="Collections"
-        description="Explore curated categories from IL Distributions LLC."
-      />
-
-      <section className="relative overflow-hidden bg-[linear-gradient(180deg,#FAFAFA_0%,#F6F4EF_100%)] py-16 md:py-20">
-        <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
-
-        <div className="container relative z-10 mx-auto px-4 md:px-6">
-          {collections.length === 0 ? (
-            <div className="rounded-3xl border border-[#EAE7DF] bg-white/85 p-10 text-center shadow-sm">
-              <p className="text-sm font-semibold text-[#717182]">
-                No collections found yet.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
-              {collections.map((collection, index) => {
-                const hasImage = Boolean(collection.image?.url);
-
-                return (
-                  <motion.a
-                    key={collection.id}
-                    href={`/collections/${collection.handle}`}
-                    initial={{ opacity: 0, y: 24, filter: 'blur(5px)' }}
-                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    viewport={{ once: true, margin: '-100px' }}
-                    transition={{
-                      delay: index * 0.08,
-                      duration: 0.6,
-                      ease: [0.22, 1, 0.36, 1] as const,
-                    }}
-                    className="group overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,90,70,0.14)]"
-                  >
-                    <div className="relative flex h-72 items-center justify-center overflow-hidden bg-gradient-to-br from-[#071611] via-[#111111] to-[#0F5A46] px-6">
-                      {hasImage ? (
-                        <>
-                          <img
-                            src={collection.image.url}
-                            alt={collection.image.altText || collection.title}
-                            className="absolute inset-0 h-full w-full object-cover opacity-50 transition-all duration-700 group-hover:scale-105 group-hover:opacity-60"
-                          />
-                          <div className="absolute inset-0 bg-black/45" />
-                        </>
-                      ) : (
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(200,164,93,0.22),transparent_35%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                      )}
-
-                      <h2 className="relative z-10 text-center text-3xl font-extrabold tracking-tight text-white transition-transform duration-300 group-hover:scale-[1.03]">
-                        {collection.title}
-                      </h2>
-                    </div>
-
-                    <div className="p-6">
-                      <p className="line-clamp-2 text-sm leading-relaxed text-[#717182]">
-                        {collection.description ||
-                          'Explore selected products from this collection.'}
-                      </p>
-
-                      <span className="mt-5 inline-block text-sm font-bold text-[#0F5A46] transition-all duration-300 group-hover:translate-x-1">
-                        Explore Collection →
-                      </span>
-                    </div>
-                  </motion.a>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
     </>
   );
 }
 
 function DynamicCollectionPage({ handle }: { handle: string }) {
-  const [collection, setCollection] = useState<any>(null);
-
-  useEffect(() => {
-    async function loadCollection() {
-      const collections = await getCollections();
-      const foundCollection = collections.find(
-        (item: any) => item.handle === handle
-      );
-
-      setCollection(foundCollection || null);
-    }
-
-    loadCollection();
-  }, [handle]);
-
-  const title = collection?.title || handle.replaceAll('-', ' ');
-  const description =
-    collection?.description ||
-    'Explore products available in this collection.';
-
-  return (
-    <>
-      <PageHero title={title} description={description} />
-      <CollectionProducts handle={handle} />
-    </>
-  );
+  return <CollectionProducts handle={handle} />;
 }
 
-function PageRoute({ path }: { path: string }) {
+function PageRoute({
+  path,
+  onProductReady,
+}: {
+  path: string;
+  onProductReady: (path: string) => void;
+}) {
   const productMatch = path.match(/^\/product\/(.+)$/);
   const collectionMatch = path.match(/^\/collections\/(.+)$/);
 
-  if (productMatch) return <ProductPage handle={productMatch[1]} />;
+  if (productMatch) {
+    return (
+      <ProductPage
+        handle={productMatch[1]}
+        onPageReady={() => onProductReady(path)}
+      />
+    );
+  }
   if (collectionMatch) {
     return <DynamicCollectionPage handle={collectionMatch[1]} />;
   }
@@ -229,77 +142,27 @@ if (path === '/orders') {
 }
 
   if (path === '/account') {
-    return (
-      <>
-        <PageHero
-          title="Customer Account"
-          description="Customer accounts and login features will be available soon."
-        />
-        <AccountPage />
-      </>
-    );
+    return <AccountPage />;
   }
 
   if (path === '/catalog') {
-    return (
-      <>
-        <PageHero
-          title="Catalog"
-          description="Browse all premium products available from IL Distributions LLC."
-        />
-        <CatalogPage />
-      </>
-    );
+    return <CatalogPage />;
   }
 
-  if (path === '/new-arrivals') {
-    return (
-      <>
-        <PageHero
-          title="New Arrivals"
-          description="Explore the newest products added to our store."
-        />
-        <NewArrivalsPage />
-      </>
-    );
-  }
+  if (path === '/new-arrivals') return <NewArrivalsPage />;
 
   if (path === '/collections') return <CollectionsPage />;
 
   if (path === '/brands') {
-    return (
-      <>
-        <PageHero
-          title="Brands"
-          description="Explore all available brands from IL Distributions LLC."
-        />
-        <BrandsPage />
-      </>
-    );
+    return <BrandsPage />;
   }
 
   if (path === '/track-order') {
-    return (
-      <>
-        <PageHero
-          title="Track Order"
-          description="Find tracking details and support information for your order."
-        />
-        <TrackOrderPage />
-      </>
-    );
+    return <TrackOrderPage />;
   }
 
   if (path === '/contact') {
-    return (
-      <>
-        <PageHero
-          title="Contact"
-          description="Get in touch with IL Distributions LLC for support, orders, or wholesale inquiries."
-        />
-        <ContactPage />
-      </>
-    );
+    return <ContactPage />;
   }
 
   if (path === '/privacy-policy') return <PrivacyPolicyPage />;
@@ -313,6 +176,42 @@ if (path === '/orders') {
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [isChangingPage, setIsChangingPage] = useState(false);
+  const transitionTargetRef = useRef('');
+  const transitionStartedAtRef = useRef(0);
+  const navigationTimerRef = useRef<number | null>(null);
+  const fallbackTimerRef = useRef<number | null>(null);
+  const finishTimerRef = useRef<number | null>(null);
+
+  const clearTimer = useCallback(
+    (timer: MutableRefObject<number | null>) => {
+      if (timer.current !== null) {
+        window.clearTimeout(timer.current);
+        timer.current = null;
+      }
+    },
+    []
+  );
+
+  const finishPageTransition = useCallback(
+    (readyPath?: string) => {
+      const pendingPath = transitionTargetRef.current;
+
+      if (!pendingPath || (readyPath && readyPath !== pendingPath)) return;
+
+      clearTimer(fallbackTimerRef);
+      clearTimer(finishTimerRef);
+
+      const elapsed = performance.now() - transitionStartedAtRef.current;
+      const remaining = Math.max(0, MIN_LOADER_VISIBLE_MS - elapsed);
+
+      finishTimerRef.current = window.setTimeout(() => {
+        setIsChangingPage(false);
+        transitionTargetRef.current = '';
+        finishTimerRef.current = null;
+      }, remaining);
+    },
+    [clearTimer]
+  );
 
   useEffect(() => {
     function handlePopState() {
@@ -325,6 +224,14 @@ export default function App() {
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      clearTimer(navigationTimerRef);
+      clearTimer(fallbackTimerRef);
+      clearTimer(finishTimerRef);
+    };
+  }, [clearTimer]);
 
   function handlePageClick(event: MouseEvent<HTMLDivElement>) {
     if (event.defaultPrevented || isChangingPage) return;
@@ -349,20 +256,40 @@ export default function App() {
     const isInternalLink = href.startsWith('/');
 
     if (!isInternalLink) return;
-    if (href === window.location.pathname) return;
+    const destination = new URL(href, window.location.origin);
+    const destinationPath = destination.pathname;
+
+    if (
+      destinationPath === window.location.pathname &&
+      destination.search === window.location.search
+    ) {
+      return;
+    }
 
     event.preventDefault();
+    clearTimer(navigationTimerRef);
+    clearTimer(fallbackTimerRef);
+    clearTimer(finishTimerRef);
+
+    transitionTargetRef.current = destinationPath;
+    transitionStartedAtRef.current = performance.now();
     setIsChangingPage(true);
 
-    window.setTimeout(() => {
+    navigationTimerRef.current = window.setTimeout(() => {
       navigateTo(href);
-      setPath(href);
+      setPath(destinationPath);
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-    }, 320);
+      navigationTimerRef.current = null;
+    }, NAVIGATION_DELAY_MS);
 
-    window.setTimeout(() => {
-      setIsChangingPage(false);
-    }, 900);
+    const waitsForProduct = /^\/product\/[^/]+$/.test(destinationPath);
+
+    fallbackTimerRef.current = window.setTimeout(
+      () => finishPageTransition(destinationPath),
+      waitsForProduct
+        ? PRODUCT_TRANSITION_TIMEOUT_MS
+        : DEFAULT_TRANSITION_MS
+    );
   }
 
   return (
@@ -399,7 +326,7 @@ export default function App() {
 
       <AnimatePresence mode="wait">
         <motion.main key={path} {...pageAnimation}>
-          <PageRoute path={path} />
+          <PageRoute path={path} onProductReady={finishPageTransition} />
         </motion.main>
       </AnimatePresence>
 

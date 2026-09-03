@@ -1,25 +1,92 @@
-import { useState } from 'react';
+import {memo, useEffect, useRef, useState} from 'react';
+import type {FormEvent} from 'react';
 import {
+  ArrowRight,
+  CheckCircle,
+  Clock,
   Mail,
   MapPin,
-  Clock,
-  CheckCircle,
-  X,
-  ArrowRight,
-  Sparkles,
   MessageCircle,
   ShieldCheck,
+  X,
 } from 'lucide-react';
-import { Button } from './ui/button';
+
+type SubmitStatus = 'idle' | 'sending' | 'success' | 'error';
+
+const contactDetails = [
+  {
+    icon: Mail,
+    title: 'Email Support',
+    text: 'support@ildistributions.com',
+    href: 'mailto:support@ildistributions.com',
+  },
+  {
+    icon: MapPin,
+    title: 'Location',
+    text: 'California, United States',
+  },
+  {
+    icon: Clock,
+    title: 'Business Hours',
+    text: 'Monday – Friday: 9 AM – 6 PM PST',
+  },
+];
+
+const ContactDetail = memo(function ContactDetail({
+  icon: Icon,
+  title,
+  text,
+  href,
+}: (typeof contactDetails)[number]) {
+  const content = (
+    <>
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#E0C575]">
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0">
+        <h3 className="font-extrabold text-white">{title}</h3>
+        <p className="mt-1 break-words text-sm leading-relaxed text-[#BDCBC5]">
+          {text}
+        </p>
+      </div>
+    </>
+  );
+
+  return href ? (
+    <a
+      href={href}
+      className="flex gap-4 border-b border-white/10 py-5 first:pt-0 last:border-0 last:pb-0 hover:[&_h3]:text-[#E0C575]"
+    >
+      {content}
+    </a>
+  ) : (
+    <div className="flex gap-4 border-b border-white/10 py-5 first:pt-0 last:border-0 last:pb-0">
+      {content}
+    </div>
+  );
+});
+
+const inputClass =
+  'w-full rounded-xl border border-[#C6CEC8] bg-white px-4 text-sm text-[#17251F] outline-none transition-colors placeholder:text-[#8B9690] hover:border-[#97AAA0] focus:border-[#0F5A46] focus:ring-2 focus:ring-[#0F5A46]/15';
 
 export function ContactPage() {
-  const [sending, setSending] = useState(false);
-  const [toastVisible, setToastVisible] = useState(false);
+  const [status, setStatus] = useState<SubmitStatus>('idle');
+  const hideMessageTimer = useRef<number | null>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    return () => {
+      if (hideMessageTimer.current !== null) {
+        window.clearTimeout(hideMessageTimer.current);
+      }
+    };
+  }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSending(true);
 
+    if (status === 'sending') return;
+
+    setStatus('sending');
     const form = event.currentTarget;
     const formData = new FormData(form);
 
@@ -29,207 +96,217 @@ export function ContactPage() {
         {
           method: 'POST',
           body: formData,
-          headers: {
-            Accept: 'application/json',
-          },
+          headers: {Accept: 'application/json'},
         }
       );
 
       if (!response.ok) throw new Error('Form submission failed');
 
       form.reset();
-      setToastVisible(true);
+      setStatus('success');
 
-      setTimeout(() => setToastVisible(false), 6000);
+      if (hideMessageTimer.current !== null) {
+        window.clearTimeout(hideMessageTimer.current);
+      }
+
+      hideMessageTimer.current = window.setTimeout(() => {
+        setStatus('idle');
+        hideMessageTimer.current = null;
+      }, 6000);
     } catch (error) {
-      alert('Something went wrong. Please try again or email us directly.');
-    } finally {
-      setSending(false);
+      console.error('Unable to send contact form:', error);
+      setStatus('error');
     }
   }
 
-  const inputClass =
-    'w-full rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] px-4 py-3 text-sm outline-none transition-all duration-300 hover:bg-white focus:border-[#0F5A46]/40 focus:bg-white focus:shadow-[0_12px_30px_rgba(15,90,70,0.10)]';
-
   return (
-    <section className="relative overflow-hidden py-12 md:py-20 bg-[radial-gradient(circle_at_10%_10%,rgba(15,90,70,0.07),transparent_28%),radial-gradient(circle_at_90%_20%,rgba(200,164,93,0.10),transparent_28%),linear-gradient(180deg,#FAFAFA_0%,#F6F4EF_100%)]">
-      <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
+    <main className="min-h-screen bg-[#CDD6CF] px-4 py-8 sm:px-6 md:py-10 lg:px-10">
+      <div className="mx-auto w-full max-w-6xl">
+        <section className="overflow-hidden rounded-[1.75rem] border border-[#AEBBB4] bg-[#F7F5F0] shadow-[0_12px_28px_rgba(24,48,40,0.1)]">
+          <div className="grid lg:grid-cols-[0.82fr_1.18fr]">
+            <div className="relative bg-[#123F34] px-6 py-8 sm:px-8 md:p-10 lg:p-12">
+              <div className="absolute inset-y-0 right-0 hidden w-px bg-white/10 lg:block" />
 
-      <div className="container relative z-10 mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-          <div className="rounded-[2rem] border border-[#EAE7DF] bg-white/85 p-6 shadow-[0_18px_55px_rgba(17,17,17,0.06)] backdrop-blur-sm md:p-10">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-[#0F5A46]/8 px-4 py-2">
-              <Sparkles className="h-4 w-4 text-[#C8A45D]" />
-              <span className="text-sm font-bold text-[#0F5A46]">
-                Customer Support
-              </span>
+              <div className="mb-8 max-w-md">
+                <div className="mb-4 flex items-center gap-2 text-[#D8BE6B]">
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="text-xs font-bold uppercase tracking-[0.14em]">
+                    Customer Support
+                  </span>
+                </div>
+
+                <h1 className="text-3xl font-extrabold tracking-[-0.035em] text-white sm:text-4xl">
+                  How can we help?
+                </h1>
+
+                <p className="mt-3 text-sm leading-relaxed text-[#C5D0CB] sm:text-base">
+                  Contact us about a product, an existing order, wholesale
+                  inquiries, or general support.
+                </p>
+              </div>
+
+              <div>
+                {contactDetails.map((detail) => (
+                  <ContactDetail key={detail.title} {...detail} />
+                ))}
+              </div>
+
+              <div className="mt-8 flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.06] p-4">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#E0C575]" />
+                <p className="text-sm leading-relaxed text-[#BDCBC5]">
+                  For order questions, include your order number so we can help
+                  you faster.
+                </p>
+              </div>
             </div>
 
-            <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-[#111111] md:text-5xl">
-              Contact Us
-            </h2>
+            <div className="px-6 py-8 sm:px-8 md:p-10 lg:p-12">
+              <div className="mb-7">
+                <p className="text-xs font-bold uppercase tracking-[0.13em] text-[#0F5A46]">
+                  Send a message
+                </p>
+                <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.025em] text-[#17251F] sm:text-3xl">
+                  Tell us what you need
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-[#68756E]">
+                  Complete the form and our team will respond as soon as
+                  possible.
+                </p>
+              </div>
 
-            <p className="mb-8 text-[#717182] leading-relaxed">
-              Have questions about products, orders, wholesale inquiries, or
-              support? Our team is here to help.
-            </p>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <input type="hidden" name="_captcha" value="false" />
+                <input
+                  type="hidden"
+                  name="_subject"
+                  value="New Contact Form Message - IL Distributions LLC"
+                />
+                <input type="hidden" name="_template" value="table" />
 
-            <div className="space-y-4">
-              {[
-                [Mail, 'Email Support', 'support@ildistributions.com'],
-                [MapPin, 'Location', 'California, United States'],
-                [Clock, 'Business Hours', 'Monday - Friday: 9AM - 6PM PST'],
-              ].map(([Icon, title, text]) => (
-                <div
-                  key={title as string}
-                  className="group flex items-start gap-4 rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(15,90,70,0.10)]"
-                >
-                  <div className="rounded-2xl bg-[#0F5A46]/10 p-3 text-[#0F5A46] transition-all duration-300 group-hover:bg-[#0F5A46] group-hover:text-white">
-                    <Icon className="h-5 w-5" />
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="contact-name"
+                      className="mb-2 block text-sm font-bold text-[#17251F]"
+                    >
+                      Full Name
+                    </label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      name="name"
+                      required
+                      autoComplete="name"
+                      placeholder="Your full name"
+                      className={`${inputClass} h-12`}
+                    />
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-[#111111]">
-                      {title as string}
-                    </h3>
-
-                    <p className="text-sm text-[#717182]">
-                      {text as string}
-                    </p>
+                    <label
+                      htmlFor="contact-email"
+                      className="mb-2 block text-sm font-bold text-[#17251F]"
+                    >
+                      Email Address
+                    </label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      name="email"
+                      required
+                      autoComplete="email"
+                      placeholder="your@email.com"
+                      className={`${inputClass} h-12`}
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
 
-            <div className="mt-8 rounded-3xl border border-[#0F5A46]/10 bg-[#0F5A46]/5 p-5">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="mt-0.5 h-5 w-5 text-[#0F5A46]" />
-                <p className="text-sm leading-relaxed text-[#717182]">
-                  For order-related questions, include your order number so we
-                  can assist you faster.
-                </p>
-              </div>
+                <div>
+                  <label
+                    htmlFor="contact-subject"
+                    className="mb-2 block text-sm font-bold text-[#17251F]"
+                  >
+                    Subject
+                  </label>
+                  <input
+                    id="contact-subject"
+                    type="text"
+                    name="subject"
+                    required
+                    placeholder="Order question, support, wholesale..."
+                    className={`${inputClass} h-12`}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="contact-message"
+                    className="mb-2 block text-sm font-bold text-[#17251F]"
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="contact-message"
+                    name="message"
+                    required
+                    rows={5}
+                    placeholder="Write your message here..."
+                    className={`${inputClass} min-h-[132px] resize-y py-3`}
+                  />
+                </div>
+
+                {status === 'error' && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-[#D9AAA4] bg-[#FFF3F1] px-4 py-3 text-sm font-semibold text-[#8E342B]"
+                  >
+                    The message could not be sent. Please try again or email us
+                    directly at support@ildistributions.com.
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={status === 'sending'}
+                  className="flex h-12 w-full items-center justify-center rounded-xl bg-[#0F5A46] px-5 text-sm font-bold text-white transition-colors hover:bg-[#126B54] focus:outline-none focus:ring-2 focus:ring-[#0F5A46]/30 focus:ring-offset-2 active:bg-[#0C4C3B] disabled:cursor-wait disabled:opacity-65"
+                >
+                  {status === 'sending' ? 'Sending...' : 'Send Message'}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </button>
+              </form>
             </div>
           </div>
-
-          <div className="rounded-[2rem] border border-[#EAE7DF] bg-white/90 p-6 shadow-[0_18px_55px_rgba(17,17,17,0.06)] backdrop-blur-sm md:p-10">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#C8A45D]/14 text-[#8A6A24]">
-                <MessageCircle className="h-6 w-6" />
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-extrabold text-[#111111]">
-                  Send a Message
-                </h2>
-                <p className="text-sm text-[#717182]">
-                  We will respond as soon as possible.
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <input type="hidden" name="_captcha" value="false" />
-              <input
-                type="hidden"
-                name="_subject"
-                value="New Contact Form Message - IL Distributions LLC"
-              />
-              <input type="hidden" name="_template" value="table" />
-
-              <div>
-                <label className="mb-2 block text-sm font-bold text-[#111111]">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  placeholder="Your full name"
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-bold text-[#111111]">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder="your@email.com"
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-bold text-[#111111]">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  required
-                  placeholder="Order question, support, wholesale..."
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-bold text-[#111111]">
-                  Message
-                </label>
-                <textarea
-                  name="message"
-                  required
-                  rows={6}
-                  placeholder="Write your message here..."
-                  className={`${inputClass} resize-none`}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={sending}
-                className="h-14 w-full rounded-2xl bg-[#0F5A46] text-base text-white shadow-[0_12px_30px_rgba(15,90,70,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#126B54] hover:shadow-[0_18px_42px_rgba(15,90,70,0.38)] active:translate-y-0 active:scale-[0.98]"
-              >
-                {sending ? 'Sending...' : 'Send Message'}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </form>
-          </div>
-        </div>
+        </section>
       </div>
 
-      {toastVisible && (
-        <div className="fixed bottom-6 right-6 z-[9999] max-w-sm rounded-3xl border border-white/10 bg-[#111111] p-5 text-white shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-[#0F5A46] p-2">
-              <CheckCircle className="h-5 w-5 text-white" />
+      {status === 'success' && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-5 left-4 right-4 z-[9999] mx-auto max-w-md rounded-2xl border border-[#315D50] bg-[#102E27] p-4 text-white shadow-[0_12px_28px_rgba(17,40,33,0.22)] sm:left-auto sm:right-6"
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B6B55]">
+              <CheckCircle className="h-5 w-5" />
             </div>
-
-            <div className="flex-1">
-              <p className="font-bold text-white">
-                Message sent successfully
-              </p>
-
-              <p className="mt-1 text-sm text-white/75">
-                Thank you for contacting IL Distributions LLC. We will try to
-                respond as soon as possible.
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">Message sent successfully</p>
+              <p className="mt-1 text-sm leading-relaxed text-white/75">
+                Thank you for contacting IL Distributions. We will respond as
+                soon as possible.
               </p>
             </div>
-
             <button
               type="button"
-              onClick={() => setToastVisible(false)}
-              className="text-white/60 transition-colors hover:text-white"
+              onClick={() => setStatus('idle')}
+              aria-label="Close confirmation"
+              className="rounded-md p-1 text-white/65 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
       )}
-    </section>
+    </main>
   );
 }

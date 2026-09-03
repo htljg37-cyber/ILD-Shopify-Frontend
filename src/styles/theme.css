@@ -183,9 +183,11 @@
    GLOBAL PREMIUM EFFECTS
 ========================================= */
 
+
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
+
 
 body {
   background:

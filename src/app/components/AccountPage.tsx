@@ -1,17 +1,15 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import {
-  User,
-  ShoppingBag,
-  Mail,
-  LogIn,
-  UserPlus,
   ArrowLeft,
-  ShieldCheck,
+  ArrowRight,
   Heart,
-  LogOut,
+  LogIn,
+  Mail,
+  ShieldCheck,
+  ShoppingBag,
   UserCircle,
+  UserPlus,
 } from 'lucide-react';
-import { Button } from './ui/button';
 
 const shopifyAuthLoginUrl = 'https://www.ildistributions.com/api/auth/login';
 const shopifyProfileUrl = 'https://account.ildistributions.com/profile';
@@ -25,190 +23,212 @@ type Customer = {
   } | null;
 };
 
+type AccountState =
+  | {status: 'loading'; customer: null}
+  | {status: 'authenticated'; customer: Customer}
+  | {status: 'guest'; customer: null};
+
+const primaryLinkClass =
+  'flex min-h-12 items-center justify-center rounded-xl bg-[#0F5A46] px-5 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-[#126B54] focus:outline-none focus:ring-2 focus:ring-[#0F5A46]/30 focus:ring-offset-2 active:bg-[#0C4C3B]';
+
+const secondaryLinkClass =
+  'flex min-h-12 items-center justify-center rounded-xl border border-[#C6CEC8] bg-white px-4 py-3 text-center text-sm font-bold text-[#17251F] transition-colors hover:border-[#0F5A46] hover:bg-[#F2F6F3] hover:text-[#0F5A46] focus:outline-none focus:ring-2 focus:ring-[#0F5A46]/20';
+
+async function readJsonResponse(response: Response) {
+  const responseText = await response.text();
+  if (!responseText.trim()) return null;
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return null;
+  }
+}
+
 export function AccountPage() {
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [isLoadingCustomer, setIsLoadingCustomer] = useState(true);
+  const [account, setAccount] = useState<AccountState>({
+    status: 'loading',
+    customer: null,
+  });
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function loadCustomer() {
       try {
-        const response = await fetch('/api/customer/me');
-        const data = await response.json();
+        const response = await fetch('/api/customer/me', {
+          signal: controller.signal,
+          credentials: 'include',
+          headers: {Accept: 'application/json'},
+        });
+        const data = await readJsonResponse(response);
 
-        if (data?.isLoggedIn && data?.customer) {
-          setCustomer(data.customer);
-        } else {
-          setCustomer(null);
+        if (controller.signal.aborted) return;
+
+        if (response.ok && data?.isLoggedIn && data?.customer) {
+          setAccount({status: 'authenticated', customer: data.customer});
+          return;
         }
-      } catch {
-        setCustomer(null);
-      } finally {
-        setIsLoadingCustomer(false);
+
+        if (response.status !== 401 && response.status !== 403) {
+          console.warn(
+            `Customer session could not be verified (${response.status}).`
+          );
+        }
+
+        setAccount({status: 'guest', customer: null});
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.warn('Customer session request was unavailable.', error);
+          setAccount({status: 'guest', customer: null});
+        }
       }
     }
 
-    loadCustomer();
+    void loadCustomer();
+    return () => controller.abort();
   }, []);
 
-  const customerName =
-    customer?.firstName ||
-    customer?.emailAddress?.emailAddress ||
-    'Customer';
+  const customer =
+    account.status === 'authenticated' ? account.customer : null;
+  const customerEmail = customer?.emailAddress?.emailAddress || '';
+  const fullName = [customer?.firstName, customer?.lastName]
+    .filter(Boolean)
+    .join(' ');
+  const customerName = fullName || customerEmail || 'Customer';
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#FAFAFA_0%,#F6F4EF_100%)] py-16 md:py-24">
-      <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
-      <div className="absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#0F5A46]/10 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#C8A45D]/10 blur-3xl" />
+    <main className="min-h-[calc(100vh-80px)] bg-[#CDD6CF] px-4 py-8 sm:px-6 md:py-12 lg:px-10">
+      <div className="mx-auto w-full max-w-5xl">
+        <section className="overflow-hidden rounded-[1.75rem] border border-[#AEBBB4] bg-[#F7F5F0] shadow-[0_12px_28px_rgba(24,48,40,0.09)]">
+          <header className="bg-[#123F34] px-6 py-7 sm:px-8 md:px-10 md:py-9">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-[#E0C575]">
+                <UserCircle className="h-7 w-7" />
+              </div>
 
-      <div className="container relative z-10 mx-auto px-4 md:px-6">
-        <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-[#EAE7DF] bg-white/90 shadow-[0_24px_70px_rgba(17,17,17,0.08)] backdrop-blur-xl">
-          <div className="grid grid-cols-1 md:grid-cols-[0.95fr_1.05fr]">
-            <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(200,164,93,0.24),transparent_35%),linear-gradient(135deg,#071611_0%,#111111_55%,#0F5A46_100%)] p-8 text-white">
-              <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.28)_1px,transparent_1px)] bg-[size:38px_38px]" />
-
-              <div className="relative text-center">
-                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.25)] backdrop-blur-xl">
-                  <User className="h-10 w-10 text-[#C8A45D]" />
-                </div>
-
-                <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-                  {customer ? `Welcome, ${customerName}` : 'My Account'}
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#D8BE6B]">
+                  Customer Account
+                </p>
+                <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.035em] text-white sm:text-4xl">
+                  {customer ? `Welcome, ${customerName}` : 'Your account'}
                 </h1>
-
-                <p className="mt-4 text-sm leading-relaxed text-white/75">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#C5D0CB] sm:text-base">
                   {customer
-                    ? 'Your Shopify customer account is connected. You can manage your profile, orders, wishlist, and support options from here.'
-                    : 'Sign in or create your account through Shopify to manage your profile, orders, and customer information securely.'}
+                    ? 'Your Shopify customer account is connected. Manage your profile and return to the products you saved.'
+                    : 'Sign in or create an account through Shopify to manage your profile, orders, and saved products.'}
                 </p>
-
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 backdrop-blur-md">
-                  <ShieldCheck className="h-4 w-4 text-[#C8A45D]" />
-                  Secure Shopify Customer Account
-                </div>
               </div>
             </div>
+          </header>
 
-            <div className="p-7 md:p-10">
-              <div className="mb-8">
-                <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#0F5A46]">
-                  Customer Access
-                </p>
-
-                <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[#111111] md:text-3xl">
-                  {customer
-                    ? 'Manage your account'
-                    : 'Access your profile and orders'}
-                </h2>
-
-                <p className="mt-3 text-sm leading-relaxed text-[#717182]">
-                  {isLoadingCustomer
-                    ? 'Checking your customer session...'
-                    : customer
-                    ? `Signed in as ${
-                        customer.emailAddress?.emailAddress || customerName
-                      }.`
-                    : 'Registration and login are handled directly by Shopify, so your customer information stays connected to your orders.'}
-                </p>
-              </div>
-
-              {isLoadingCustomer ? (
-                <div className="rounded-2xl border border-[#EAE7DF] bg-[#F5F5F5] p-5 text-center text-sm font-semibold text-[#717182]">
-                  Loading account...
+          <div className="p-6 sm:p-8 md:p-10" aria-live="polite">
+            {account.status === 'loading' ? (
+              <div aria-label="Loading account" className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                <div className="space-y-3">
+                  <div className="h-5 w-32 rounded bg-[#D9E0DB]" />
+                  <div className="h-8 max-w-sm rounded bg-[#E0E5E1]" />
+                  <div className="h-12 rounded-xl bg-[#D9E0DB]" />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="h-12 rounded-xl bg-[#E0E5E1]" />
+                    <div className="h-12 rounded-xl bg-[#E0E5E1]" />
+                  </div>
                 </div>
-              ) : customer ? (
-                <div className="grid grid-cols-1 gap-4">
-                  <a href={shopifyProfileUrl}>
-                    <Button className="h-13 w-full rounded-xl bg-[#0F5A46] text-white shadow-[0_12px_28px_rgba(15,90,70,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0F5A46]/90">
-                      <UserCircle className="mr-2 h-4 w-4" />
-                      View Profile
-                    </Button>
-                  </a>
+                <div className="min-h-44 rounded-2xl border border-[#CFD7D1] bg-[#E8ECE8]" />
+              </div>
+            ) : customer ? (
+              <div className="grid gap-7 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.13em] text-[#0F5A46]">
+                    Account access
+                  </p>
+                  <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.025em] text-[#17251F] sm:text-3xl">
+                    Everything connected in one place
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[#68756E]">
+                    Signed in as{' '}
+                    <span className="font-bold text-[#17251F]">
+                      {customerEmail || customerName}
+                    </span>
+                  </p>
 
-                  <a href="/wishlist">
-                    <Button
-                      variant="outline"
-                      className="h-13 w-full rounded-xl border-[#EAE7DF] bg-white text-[#111111] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0F5A46]/25 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <a
+                      href={shopifyProfileUrl}
+                      className={`${primaryLinkClass} sm:col-span-2`}
                     >
-                      <Heart className="mr-2 h-4 w-4" />
+                      <UserCircle className="mr-2 h-5 w-5" />
+                      Manage Shopify Profile
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </a>
+                    <a href="/wishlist" className={secondaryLinkClass}>
+                      <Heart className="mr-2 h-5 w-5" />
                       Wishlist
-                    </Button>
-                  </a>
-
-                  <a href="/">
-                    <Button
-                      variant="outline"
-                      className="h-13 w-full rounded-xl border-[#EAE7DF] bg-white text-[#111111] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0F5A46]/25 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
+                    </a>
+                    <a href="/track-order" className={secondaryLinkClass}>
+                      <ShoppingBag className="mr-2 h-5 w-5" />
+                      Track Order
+                    </a>
+                    <a href="/contact" className={secondaryLinkClass}>
+                      <Mail className="mr-2 h-5 w-5" />
+                      Contact Support
+                    </a>
+                    <a href="/" className={secondaryLinkClass}>
+                      <ArrowLeft className="mr-2 h-5 w-5" />
                       Continue Shopping
-                    </Button>
-                  </a>
+                    </a>
+                  </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  <a href={shopifyAuthLoginUrl}>
-                    <Button className="h-13 w-full rounded-xl bg-[#0F5A46] text-white shadow-[0_12px_28px_rgba(15,90,70,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0F5A46]/90">
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
-                    </Button>
-                  </a>
 
-                  <a href={shopifyAuthLoginUrl}>
-                    <Button
-                      variant="outline"
-                      className="h-13 w-full rounded-xl border-[#EAE7DF] bg-white text-[#111111] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0F5A46]/25 hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Create Account
-                    </Button>
-                  </a>
-                </div>
-              )}
-
-              <div className="my-8 h-px bg-[#EAE7DF]" />
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <a href="/track-order">
-                  <Button
-                    variant="outline"
-                    className="h-12 w-full rounded-xl border-[#EAE7DF] bg-white hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                  >
-                    <ShoppingBag className="mr-2 h-4 w-4" />
-                    Orders
-                  </Button>
-                </a>
-
-                <a href="/contact">
-                  <Button
-                    variant="outline"
-                    className="h-12 w-full rounded-xl border-[#EAE7DF] bg-white hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Contact
-                  </Button>
-                </a>
-
-                <a href="/">
-                  <Button
-                    variant="outline"
-                    className="h-12 w-full rounded-xl border-[#EAE7DF] bg-white hover:bg-[#F5F5F5] hover:text-[#0F5A46]"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Store
-                  </Button>
-                </a>
+                <aside className="rounded-2xl border border-[#C8D2CB] bg-[#E8EFEA] p-5 sm:p-6">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F5A46] text-white">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <h2 className="mt-4 text-lg font-extrabold text-[#17251F]">
+                    Secured by Shopify
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[#5F6F66]">
+                    Your login, registration, profile information, and order
+                    history are managed through Shopify Customer Accounts.
+                  </p>
+                  <div className="mt-5 border-t border-[#C8D2CB] pt-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#68756E]">
+                      Connected account
+                    </p>
+                    <p className="mt-1 break-all text-sm font-bold text-[#0F5A46]">
+                      {customerEmail || customerName}
+                    </p>
+                  </div>
+                </aside>
               </div>
-
-              <p className="mt-6 text-center text-xs leading-relaxed text-[#717182]">
-                {customer
-                  ? 'Your account is connected through Shopify Customer Accounts.'
-                  : 'After signing in, Shopify will manage your account access, registration, and order profile securely.'}
-              </p>
-            </div>
+            ) : (
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#E2EAE5] text-[#0F5A46]">
+                  <LogIn className="h-6 w-6" />
+                </div>
+                <h2 className="mt-5 text-2xl font-extrabold tracking-[-0.025em] text-[#17251F] sm:text-3xl">
+                  Sign in to your customer account
+                </h2>
+                <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-[#68756E]">
+                  Shopify securely handles account access and registration, so
+                  your profile stays connected to your orders and wishlist.
+                </p>
+                <div className="mx-auto mt-6 grid max-w-md gap-3 sm:grid-cols-2">
+                  <a href={shopifyAuthLoginUrl} className={primaryLinkClass}>
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Sign In
+                  </a>
+                  <a href={shopifyAuthLoginUrl} className={secondaryLinkClass}>
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Create Account
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </section>
       </div>
-    </section>
+    </main>
   );
 }

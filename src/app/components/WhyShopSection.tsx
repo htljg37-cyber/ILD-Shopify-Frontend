@@ -1,178 +1,152 @@
-import { motion } from 'motion/react';
+import {motion} from 'motion/react';
 import {
-  Truck,
-  ShieldCheck,
-  Package,
+  ArrowRight,
   Headphones,
+  Package,
+  RefreshCw,
+  Ruler,
   Sparkles,
-  CheckCircle2,
 } from 'lucide-react';
 
 const features = [
   {
-    icon: Truck,
-    title: 'Reliable Shipping',
+    icon: Package,
+    title: 'Collector-Focused Catalog',
     description:
-      'Orders are prepared with care and shipped through trusted carriers once fulfilled.',
+      'Browse diecast models, figures, display pieces, and other finds selected with collectors in mind.',
     accent: 'green',
   },
   {
-    icon: ShieldCheck,
-    title: 'Secure Checkout',
+    icon: Ruler,
+    title: 'Clear Size Information',
     description:
-      'Checkout is processed securely through Shopify with protected payment options.',
+      'Scale guides and detailed product information make it easier to choose the right piece for your display.',
     accent: 'gold',
   },
   {
-    icon: Package,
-    title: 'Curated Products',
+    icon: RefreshCw,
+    title: 'A Growing Selection',
     description:
-      'We focus on selected products, collectibles, and premium finds for online shoppers.',
+      'Discover an expanding catalog as new products, collectible brands, and categories are added to the store.',
     accent: 'green',
   },
   {
     icon: Headphones,
-    title: 'Customer Support',
+    title: 'Direct Customer Support',
     description:
-      'Questions about an order or product? Contact us and we will respond as soon as possible.',
+      'Need help with a product or order? Contact ILD directly and receive a clear, helpful response.',
     accent: 'gold',
-  },
-];
-
-const trustBadges = [
-  {
-    icon: ShieldCheck,
-    label: 'Secure Checkout',
-  },
-  {
-    icon: Truck,
-    label: 'Tracked Shipping',
-  },
-  {
-    icon: Package,
-    label: 'Careful Packaging',
-  },
-  {
-    icon: Headphones,
-    label: 'Email Support',
   },
 ];
 
 export function WhyShopSection() {
+  function goToCatalog() {
+    window.history.pushState({}, '', '/catalog');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
   return (
-    <section className="relative overflow-hidden py-16 md:py-24 bg-[radial-gradient(circle_at_10%_20%,rgba(15,90,70,0.08),transparent_28%),radial-gradient(circle_at_90%_18%,rgba(200,164,93,0.11),transparent_30%),linear-gradient(180deg,#FFFFFF_0%,#F8F7F3_100%)]">
-      <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.16)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.16)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-      <div className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-[#0F5A46]/10 blur-3xl" />
-      <div className="absolute -right-24 bottom-20 h-72 w-72 rounded-full bg-[#C8A45D]/12 blur-3xl" />
-
-      <div className="container relative z-10 mx-auto px-4 md:px-6">
-        <div className="mx-auto mb-12 max-w-3xl text-center">
+    <section className="performance-section relative overflow-hidden bg-[#F7F5F0] pt-8 pb-6 md:pt-10 md:pb-8">
+      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+        <div className="mb-8 max-w-3xl md:mb-10">
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/75 px-4 py-2 shadow-sm"
+            initial={{opacity: 0, y: 12}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/85 px-4 py-2 shadow-sm"
           >
             <Sparkles className="h-4 w-4 text-[#C8A45D]" />
-            <span className="text-sm font-semibold text-[#0F5A46]">
-              Built for a better shopping experience
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">
+              The ILD Difference
             </span>
           </motion.div>
 
           <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-4 text-3xl font-bold tracking-tight text-[#111111] md:text-5xl"
+            initial={{opacity: 0, y: 14}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            className="mb-3 text-4xl font-extrabold tracking-[-0.045em] text-[#111111] md:text-5xl"
           >
-            Why Shop With ILD
+            Built for Collectors
           </motion.h2>
 
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="mx-auto max-w-2xl text-[#717182]"
+            initial={{opacity: 0, y: 14}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{delay: 0.08}}
+            className="max-w-2xl text-base leading-relaxed text-[#717182]"
           >
-            A simple, secure, and carefully curated shopping experience designed
-            to help customers buy with confidence.
+            A more helpful way to explore collectibles, understand their size,
+            and find the right addition for your collection.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             const isGold = feature.accent === 'gold';
 
             return (
-              <motion.div
+              <motion.article
                 key={feature.title}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ delay: index * 0.08, duration: 0.45 }}
-                className="group relative h-full overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white/85 p-6 shadow-[0_10px_30px_rgba(17,17,17,0.04)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_22px_55px_rgba(15,90,70,0.13)]"
+                initial={{opacity: 0, y: 18}}
+                whileInView={{opacity: 1, y: 0}}
+                viewport={{once: true, margin: '-70px'}}
+                transition={{delay: index * 0.07, duration: 0.42}}
+                className="group relative h-full overflow-hidden rounded-3xl border border-[#E1DCD2] bg-white/80 p-6 shadow-[0_12px_34px_rgba(17,17,17,0.045)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_22px_55px_rgba(15,90,70,0.11)]"
               >
-                <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_30%_0%,rgba(15,90,70,0.10),transparent_38%),radial-gradient(circle_at_88%_10%,rgba(200,164,93,0.16),transparent_38%)]" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#0F5A46]/35 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                 <div
-                  className={`relative mb-6 flex h-14 w-14 items-center justify-center rounded-2xl shadow-[0_12px_26px_rgba(17,17,17,0.10)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 ${
+                  className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 ${
                     isGold
-                      ? 'bg-[#C8A45D]/14 text-[#8A6A24] group-hover:shadow-[0_16px_34px_rgba(200,164,93,0.26)]'
-                      : 'bg-[#0F5A46]/12 text-[#0F5A46] group-hover:shadow-[0_16px_34px_rgba(15,90,70,0.22)]'
+                      ? 'bg-[#C8A45D]/14 text-[#8A6A24] shadow-[0_12px_26px_rgba(200,164,93,0.16)]'
+                      : 'bg-[#0F5A46]/11 text-[#0F5A46] shadow-[0_12px_26px_rgba(15,90,70,0.14)]'
                   }`}
                 >
-                  <Icon className="h-7 w-7 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 rounded-2xl ring-1 ring-white/50" />
+                  <Icon className="h-7 w-7" />
                 </div>
 
-                <div className="relative">
-                  <h3 className="mb-3 text-xl font-bold tracking-tight text-[#111111] transition-colors duration-300 group-hover:text-[#0F5A46]">
-                    {feature.title}
-                  </h3>
+                <h3 className="mb-3 text-xl font-extrabold tracking-tight text-[#111111] transition-colors duration-300 group-hover:text-[#0F5A46]">
+                  {feature.title}
+                </h3>
 
-                  <p className="text-sm leading-relaxed text-[#717182]">
-                    {feature.description}
-                  </p>
-                </div>
-
-                <div className="absolute bottom-0 left-6 right-6 h-[3px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#0F5A46] to-[#C8A45D] transition-transform duration-300 group-hover:scale-x-100" />
-              </motion.div>
+                <p className="text-sm leading-relaxed text-[#717182]">
+                  {feature.description}
+                </p>
+              </motion.article>
             );
           })}
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ delay: 0.15 }}
-          className="mt-12 rounded-3xl border border-[#EAE7DF] bg-white/75 p-5 shadow-[0_12px_35px_rgba(17,17,17,0.04)] backdrop-blur-sm md:p-6"
+          initial={{opacity: 0, y: 18}}
+          whileInView={{opacity: 1, y: 0}}
+          viewport={{once: true, margin: '-70px'}}
+          transition={{delay: 0.12}}
+          className="relative mt-8 overflow-hidden rounded-3xl bg-[#0F5A46] px-6 py-7 shadow-[0_22px_55px_rgba(15,90,70,0.18)] sm:px-8 md:flex md:items-center md:justify-between md:gap-8"
         >
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-            {trustBadges.map((badge, index) => {
-              const Icon = badge.icon;
+          <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#C8A45D]/18 blur-3xl" />
+          <div className="pointer-events-none absolute inset-0 opacity-[0.045] bg-[linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px)] bg-[size:38px_38px]" />
 
-              return (
-                <motion.div
-                  key={badge.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 + index * 0.06 }}
-                  className="group flex items-center gap-2 rounded-full border border-[#0F5A46]/10 bg-[#F8F7F3] px-4 py-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0F5A46]/25 hover:bg-white hover:shadow-[0_10px_24px_rgba(15,90,70,0.10)]"
-                >
-                  <Icon className="h-4 w-4 text-[#0F5A46] transition-transform duration-300 group-hover:scale-110" />
-                  <span className="text-sm font-semibold text-[#111111]">
-                    {badge.label}
-                  </span>
-                  <CheckCircle2 className="h-4 w-4 text-[#C8A45D]" />
-                </motion.div>
-              );
-            })}
+          <div className="relative z-10 mb-5 md:mb-0">
+            <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#D9BE82]">
+              Find your next collectible
+            </p>
+            <h3 className="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+              Ready to explore the full catalog?
+            </h3>
           </div>
+
+          <button
+            type="button"
+            onClick={goToCatalog}
+            className="relative z-10 inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-extrabold text-[#0F5A46] shadow-[0_10px_28px_rgba(0,0,0,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#FFF9EB] hover:shadow-[0_14px_32px_rgba(0,0,0,0.20)]"
+          >
+            Explore the Catalog
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </motion.div>
       </div>
     </section>

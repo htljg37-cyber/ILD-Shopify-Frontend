@@ -68,17 +68,67 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/logo2.png" />
 
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
+  <style>
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
 
-      #root {
-        height: 100%;
-      }
-    </style>
+  body {
+    letter-spacing: 0.008em;
+    word-spacing: clamp(3px, 0.28em, 5px);
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: -0.005em !important;
+    word-spacing: clamp(3px, 0.1em, 5px) !important;
+    line-height: 1.14;
+  }
+
+  p,
+  li,
+  label,
+  small,
+  .text-xs,
+  .text-sm,
+  .text-base {
+    letter-spacing: 0.012em;
+    word-spacing: clamp(3px, 0.28em, 5px) !important;
+  }
+
+  p,
+  li {
+    line-height: 1.65;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select {
+    word-spacing: clamp(2px, 0.18em, 4px) !important;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  #root {
+    height: 100%;
+  }
+</style>
+
   </head>
 
   <body>

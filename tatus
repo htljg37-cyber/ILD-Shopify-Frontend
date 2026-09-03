@@ -1,0 +1,10 @@
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/components/CategoryCards.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/components/FeaturedProducts.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/components/Header.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/components/WhyShopSection.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/styles/index.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/styles/theme.css', LF will be replaced by CRLF the next time Git touches it
