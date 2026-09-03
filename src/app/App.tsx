@@ -8,7 +8,6 @@ import { CollectibleBrands } from './components/CollectibleBrands';
 import { FeaturedProducts } from './components/FeaturedProducts';
 import { WhyShopSection } from './components/WhyShopSection';
 import { Footer } from './components/Footer';
-import { PageHero } from './components/PageHero';
 import { CollectionProducts } from './components/CollectionProducts';
 import { CollectionsPage } from './components/CollectionsPage';
 import { ProductPage } from './components/ProductPage';
@@ -117,29 +116,9 @@ function PageRoute({
 
   if (path === '/cart') return <CartPage />;
 
-  if (path === '/wishlist') {
-  return (
-    <>
-      <PageHero
-        title="Wishlist"
-        description="View your saved products and continue shopping anytime."
-      />
-      <WishlistPage />
-    </>
-  );
-}
+  if (path === '/wishlist') return <WishlistPage />;
 
-if (path === '/orders') {
-  return (
-    <>
-      <PageHero
-        title="My Orders"
-        description="Review your purchase history and order status."
-      />
-      <OrdersPage />
-    </>
-  );
-}
+  if (path === '/orders') return <OrdersPage />;
 
   if (path === '/account') {
     return <AccountPage />;

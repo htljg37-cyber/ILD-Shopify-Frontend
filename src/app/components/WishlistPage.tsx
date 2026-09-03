@@ -122,6 +122,7 @@ export function WishlistPage() {
       try {
         const customerResponse = await fetch('/api/customer/me', {
           signal: controller.signal,
+          credentials: 'include',
           headers: {Accept: 'application/json'},
         });
         const customerData = await readJsonResponse(customerResponse);
@@ -129,22 +130,26 @@ export function WishlistPage() {
         if (controller.signal.aborted) return;
 
         const isSignedOut =
-          customerResponse.status === 401 ||
-          customerResponse.status === 403 ||
-          (customerResponse.ok && customerData?.isLoggedIn !== true);
+          !customerResponse.ok || customerData?.isLoggedIn !== true;
 
         if (isSignedOut) {
+          if (
+            customerResponse.status !== 401 &&
+            customerResponse.status !== 403
+          ) {
+            console.warn(
+              `Customer session could not be verified (${customerResponse.status}).`
+            );
+          }
+
           setItems([]);
           setRequiresLogin(true);
           return;
         }
 
-        if (!customerResponse.ok || !customerData) {
-          throw new Error('Customer session request failed');
-        }
-
         const response = await fetch('/api/wishlist/list', {
           signal: controller.signal,
+          credentials: 'include',
           headers: {Accept: 'application/json'},
         });
 
@@ -184,6 +189,7 @@ export function WishlistPage() {
     try {
       const response = await fetch('/api/wishlist/remove', {
         method: 'DELETE',
+        credentials: 'include',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({product_id: productId}),
       });
@@ -235,29 +241,46 @@ export function WishlistPage() {
   return (
     <main className="min-h-screen bg-[#CDD6CF] px-4 py-8 sm:px-6 md:py-10 lg:px-10">
       <div className="mx-auto w-full max-w-6xl">
-        <header className="mb-6 flex flex-col justify-between gap-4 rounded-[1.5rem] border border-white/10 bg-[#123F34] px-6 py-7 sm:flex-row sm:items-end sm:px-8">
-          <div>
-            <div className="flex items-center gap-2 text-[#D8BE6B]">
-              <Heart className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase tracking-[0.14em]">
-                Saved Products
-              </span>
+        <header className="relative mb-6 overflow-hidden rounded-[1.5rem] border border-[#315D50] bg-[#123F34] px-6 py-7 shadow-[0_10px_24px_rgba(24,48,40,0.12)] sm:px-8">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full border border-white/[0.07]" />
+          <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-[#E0C575]">
+                <Heart className="h-6 w-6" />
+              </div>
+
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#D8BE6B]">
+                  Saved Products
+                </p>
+                <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.035em] text-white sm:text-4xl">
+                  My wishlist
+                </h1>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#C5D0CB]">
+                  Keep the products you like connected to your customer account
+                  and return to them whenever you are ready.
+                </p>
+              </div>
             </div>
-            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.035em] text-white sm:text-4xl">
-              My wishlist
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#C5D0CB]">
-              Keep products connected to your customer account and return to
-              them whenever you are ready.
-            </p>
+
+            <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
+              {!loading && !requiresLogin && items.length > 0 && (
+                <p className="rounded-full border border-white/10 bg-white/[0.07] px-4 py-2 text-xs font-bold text-[#D7E0DB]">
+                  {items.length} {items.length === 1 ? 'product' : 'products'} saved
+                </p>
+              )}
+              <a
+                href="/catalog"
+                className="inline-flex items-center gap-2 text-sm font-bold text-white transition-colors hover:text-[#E0C575]"
+              >
+                Browse catalog
+                <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
           </div>
-          {!loading && !requiresLogin && items.length > 0 && (
-            <p className="text-sm font-semibold text-[#C5D0CB]">
-              {items.length} {items.length === 1 ? 'product' : 'products'}
-            </p>
-          )}
         </header>
 
+        <div aria-live="polite">
         {loading ? (
           <div className="rounded-[1.5rem] border border-[#B9C5BE] bg-[#E2E7E3] p-10 text-center text-sm font-semibold text-[#68756E]">
             Loading wishlist...
@@ -354,6 +377,7 @@ export function WishlistPage() {
             )}
           </section>
         )}
+        </div>
       </div>
     </main>
   );
