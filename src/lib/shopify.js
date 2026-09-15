@@ -203,6 +203,50 @@ const productFields = `
   }
 `;
 
+// List cards do not need full descriptions or the image gallery.
+const productCardFields = `
+  id
+  title
+  handle
+  tags
+  createdAt
+  availableForSale
+  featuredImage {
+    url
+    altText
+  }
+  priceRange {
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  compareAtPriceRange {
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  variants(first: 10) {
+    edges {
+      node {
+        id
+        title
+        availableForSale
+        quantityAvailable
+        price {
+          amount
+          currencyCode
+        }
+        compareAtPrice {
+          amount
+          currencyCode
+        }
+      }
+    }
+  }
+`;
+
 const collectionFields = `
   id
   title
@@ -221,22 +265,69 @@ const collectionFields = `
   }
 `;
 
-export async function getProducts() {
-  const query = `
-    {
-      products(first: 100, sortKey: CREATED_AT, reverse: true) {
-        edges {
-          node {
-            ${productFields}
-          }
+// Only simultaneous list requests are shared; prices and stock are not cached.
+const pendingProductPages = new Map();
+
+/**
+ * Fetch one lightweight page. Pass pageInfo.endCursor as `after` for the next.
+ * `query` is Shopify search syntax, not a raw user search string.
+ */
+export async function getProductsPage({
+  first = 20,
+  after = null,
+  query = '',
+  sortKey = 'CREATED_AT',
+  reverse = true,
+} = {}) {
+  if (!Number.isInteger(first) || first < 1 || first > 250) {
+    throw new RangeError('Product page size must be between 1 and 250.');
+  }
+  const variables = {first, after, query, sortKey, reverse};
+  const key = JSON.stringify(variables);
+  const existing = pendingProductPages.get(key);
+  if (existing) return existing;
+
+  const request = (async () => {
+    const document = `
+      query ProductCardsPage(
+        $first: Int!, $after: String, $query: String,
+        $sortKey: ProductSortKeys!, $reverse: Boolean!
+      ) {
+        products(
+          first: $first, after: $after, query: $query,
+          sortKey: $sortKey, reverse: $reverse
+        ) {
+          edges { node { ${productCardFields} } }
+          pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
         }
       }
-    }
-  `;
+    `;
+    const data = await shopifyFetch(document, variables);
+    if (!data?.products) throw new Error('Unable to load product page.');
+    return {
+      products: data.products.edges.map((edge) => normalizeProduct(edge.node)),
+      pageInfo: data.products.pageInfo,
+    };
+  })();
 
-  const data = await shopifyFetch(query);
+  pendingProductPages.set(key, request);
+  try {
+    return await request;
+  } finally {
+    pendingProductPages.delete(key);
+  }
+}
 
-  return data?.products?.edges?.map((item) => normalizeProduct(item.node)) || [];
+// Compatibility for existing components that expect an array.
+// Migrate each screen to getProductsPage before removing this temporary limit.
+export async function getProducts() {
+  try {
+    const {products} = await getProductsPage({first: 200});
+    return products;
+  } catch (error) {
+    console.error('Unable to load products:', error);
+    return [];
+  }
 }
 
 export async function getCollections() {
@@ -728,4 +819,135 @@ export async function removeCartLine(cartId, lineId) {
   }
 
   return data?.cartLinesRemove?.cart || null;
+}
+// Index used for exact numbered pages and the existing client-side filters.
+// No image URLs, descriptions, variant prices or compare-at prices are fetched.
+export async function getCatalogIndex() {
+  const document = `
+    query CatalogIndex($after: String) {
+      products(first: 250, after: $after, sortKey: CREATED_AT, reverse: true) {
+        edges {
+          node {
+            id title tags createdAt availableForSale
+            priceRange { minVariantPrice { amount } }
+            variants(first: 10) {
+              edges { node { availableForSale quantityAvailable } }
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  `;
+  const products = [];
+  const seen = new Set();
+  let after = null;
+  while (true) {
+    const data = await shopifyFetch(document, {after});
+    if (!data?.products) throw new Error('Unable to load catalog index.');
+    for (const edge of data.products.edges) {
+      if (!seen.has(edge.node.id)) {
+        seen.add(edge.node.id);
+        products.push(normalizeProduct(edge.node));
+      }
+    }
+    const {hasNextPage, endCursor} = data.products.pageInfo;
+    if (!hasNextPage) return products;
+    if (!endCursor || endCursor === after) {
+      throw new Error('Unable to advance catalog index.');
+    }
+    after = endCursor;
+  }
+}
+
+export async function getProductCardsByIds(ids) {
+  if (!Array.isArray(ids) || ids.length > 250) {
+    throw new RangeError('Expected at most 250 product IDs.');
+  }
+  if (!ids.length) return [];
+  const document = `
+    query CatalogPageCards($ids: [ID!]!) {
+      nodes(ids: $ids) { ... on Product { ${productCardFields} } }
+    }
+  `;
+  const data = await shopifyFetch(document, {ids});
+  if (!data?.nodes) throw new Error('Unable to load catalog cards.');
+  const byId = new Map();
+  for (const node of data.nodes) {
+    if (node) byId.set(node.id, normalizeProduct(node));
+  }
+  // Keep the order selected by the catalog, including price ordering.
+  return ids.map((id) => byId.get(id)).filter(Boolean);
+}
+export async function getBrandProductIndex() {
+  const document = `
+    query BrandProductIndex($after: String) {
+      products(first: 250, after: $after, sortKey: ID) {
+        edges { node { id tags } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  `;
+  const products = [];
+  const seen = new Set();
+  let after = null;
+  while (true) {
+    const data = await shopifyFetch(document, {after});
+    if (!data?.products) throw new Error('Unable to load brand products.');
+    for (const {node} of data.products.edges) {
+      if (!seen.has(node.id)) {
+        seen.add(node.id);
+        products.push(node);
+      }
+    }
+    const {hasNextPage, endCursor} = data.products.pageInfo;
+    if (!hasNextPage) return products;
+    if (!endCursor || endCursor === after) {
+      throw new Error('Unable to advance brand products.');
+    }
+    after = endCursor;
+  }
+}
+
+export async function getCollectionCatalogIndex(handle) {
+  const document = `
+    query CollectionCatalogIndex($handle: String!, $after: String) {
+      collection(handle: $handle) {
+        products(first: 250, after: $after, sortKey: ID) {
+          edges {
+            node {
+              id title tags createdAt availableForSale
+              priceRange { minVariantPrice { amount } }
+              variants(first: 10) {
+                edges { node { availableForSale quantityAvailable } }
+              }
+            }
+          }
+          pageInfo { hasNextPage endCursor }
+        }
+      }
+    }
+  `;
+  const products = [];
+  const seen = new Set();
+  let after = null;
+  while (true) {
+    const data = await shopifyFetch(document, {handle, after});
+    if (!data) throw new Error('Unable to load collection products.');
+    if (!data.collection) return [];
+    const connection = data.collection.products;
+    if (!connection) throw new Error('Unable to load collection products.');
+    for (const {node} of connection.edges) {
+      if (!seen.has(node.id)) {
+        seen.add(node.id);
+        products.push(normalizeProduct(node));
+      }
+    }
+    const {hasNextPage, endCursor} = connection.pageInfo;
+    if (!hasNextPage) return products;
+    if (!endCursor || endCursor === after) {
+      throw new Error('Unable to advance collection products.');
+    }
+    after = endCursor;
+  }
 }

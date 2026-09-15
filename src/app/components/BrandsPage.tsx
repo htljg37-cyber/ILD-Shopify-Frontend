@@ -1,7 +1,7 @@
 import {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {MouseEvent} from 'react';
 import {ArrowLeft, ArrowRight, Tags} from 'lucide-react';
-import {getCollectibleBrands, getProducts} from '../../lib/shopify';
+import {getCollectibleBrands, getBrandProductIndex} from '../../lib/shopify';
 
 const brandsPerPage = 16;
 
@@ -131,7 +131,7 @@ export function BrandsPage() {
 
       try {
         const [productData, brandData] = await Promise.all([
-          getProducts(),
+          getBrandProductIndex(),
           getCollectibleBrands(),
         ]);
 

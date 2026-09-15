@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-import { getProductsByCollection } from '../../lib/shopify';
 import { CatalogPage } from './CatalogPage';
 
 function formatCollectionTitle(handle: string) {
@@ -32,42 +30,11 @@ function CollectionLoadingState() {
 }
 
 export function CollectionProducts({ handle }: { handle: string }) {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadProducts() {
-      setLoading(true);
-
-      try {
-        const data = await getProductsByCollection(handle);
-
-        if (isMounted) {
-          setProducts(Array.isArray(data?.products) ? data.products : []);
-        }
-      } catch (error) {
-        console.error('Unable to load collection products:', error);
-
-        if (isMounted) setProducts([]);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    loadProducts();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [handle]);
-
-  if (loading) return <CollectionLoadingState />;
-
   return (
     <CatalogPage
-      customProducts={products}
+      key={handle}
+      collectionHandle={handle}
+      indexLoadingFallback={<CollectionLoadingState />}
       title={formatCollectionTitle(handle)}
       description="Browse and filter products available in this collection."
       headerVariant="collection"

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   ShoppingCart,
@@ -12,7 +12,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { getProducts, createCart, addToCart } from '../../lib/shopify';
+import { getCatalogIndex, getCollectionCatalogIndex, getProductCardsByIds, createCart, addToCart } from '../../lib/shopify';
 import { getShippingLabel } from '../../lib/shipping';
 
 const filterGroups = [
@@ -185,6 +185,8 @@ function productMatchesSelectedFilter(
 
 type CatalogPageProps = {
   customProducts?: any[];
+  collectionHandle?: string;
+  indexLoadingFallback?: ReactNode;
   title?: string;
   description?: string;
   headerVariant?: 'catalog' | 'collection';
@@ -508,12 +510,22 @@ const ProductCard = memo(function ProductCard({
 
 export function CatalogPage({
   customProducts,
+  collectionHandle,
+  indexLoadingFallback,
   title = 'All Products',
   description = 'Browse and filter our complete catalog.',
   headerVariant = 'catalog',
 }: CatalogPageProps) {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(!customProducts);
+  const [indexError, setIndexError] = useState('');
+  const [indexRetry, setIndexRetry] = useState(0);
+  const [pageRetry, setPageRetry] = useState(0);
+  const [pageResult, setPageResult] = useState<{
+    key: string;
+    products: any[];
+    error: string;
+  }>({key: '', products: [], error: ''});
   const [sort, setSort] = useState('newest');
   const [addingId, setAddingId] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>(
@@ -546,6 +558,7 @@ export function CatalogPage({
     () => new URLSearchParams(window.location.search)
   );
 
+  const catalogPath = collectionHandle ? window.location.pathname : '/catalog';
   const searchQuery = urlParams.get('search') || '';
   const brandFilter = urlParams.get('brand') || '';
   const vehicleMakeFilter = urlParams.get('make') || '';
@@ -585,9 +598,12 @@ export function CatalogPage({
 
     async function loadProducts() {
       setIsLoading(true);
+      setIndexError('');
 
       try {
-        const data = customProducts || (await getProducts());
+        const data = customProducts ?? (collectionHandle
+          ? await getCollectionCatalogIndex(collectionHandle)
+          : await getCatalogIndex());
 
         if (!isMounted) return;
 
@@ -596,7 +612,10 @@ export function CatalogPage({
       } catch (error) {
         console.error('Unable to load catalog products:', error);
 
-        if (isMounted) setProducts([]);
+        if (isMounted) {
+          setProducts([]);
+          setIndexError('Products could not be loaded. Please try again.');
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -607,7 +626,7 @@ export function CatalogPage({
     return () => {
       isMounted = false;
     };
-  }, [customProducts]);
+  }, [customProducts, collectionHandle, indexRetry]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -762,10 +781,48 @@ export function CatalogPage({
   const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
   const safeCurrentPage = Math.min(currentPage, totalPages || 1);
   const startIndex = (safeCurrentPage - 1) * productsPerPage;
-  const paginatedProducts = sortedProducts.slice(
-    startIndex,
-    startIndex + productsPerPage
+  const pageIdsKey = JSON.stringify(
+    sortedProducts.slice(startIndex, startIndex + productsPerPage).map(
+      (product) => product.id
+    )
   );
+  const usesCustomProducts = customProducts !== undefined;
+
+  useEffect(() => {
+    if (usesCustomProducts || isLoading || indexError) return;
+    const ids: string[] = JSON.parse(pageIdsKey);
+    if (ids.length === 0) return;
+    let active = true;
+    setPageResult({key: '', products: [], error: ''});
+
+    async function loadPage() {
+      try {
+        const data = await getProductCardsByIds(ids);
+        if (active) setPageResult({key: pageIdsKey, products: data, error: ''});
+      } catch (error) {
+        console.error('Unable to load catalog page:', error);
+        if (active) {
+          setPageResult({
+            key: pageIdsKey,
+            products: [],
+            error: 'This page could not be loaded. Please try again.',
+          });
+        }
+      }
+    }
+    void loadPage();
+    return () => { active = false; };
+  }, [pageIdsKey, usesCustomProducts, isLoading, indexError, pageRetry]);
+
+  const pagePending = !usesCustomProducts && sortedProducts.length > 0 &&
+    pageResult.key !== pageIdsKey;
+  const resultsLoading = isLoading || pagePending;
+  const resultsError = indexError || (
+    !usesCustomProducts && pageResult.key === pageIdsKey ? pageResult.error : ''
+  );
+  const paginatedProducts = usesCustomProducts
+    ? sortedProducts.slice(startIndex, startIndex + productsPerPage)
+    : pageResult.key === pageIdsKey ? pageResult.products : [];
 
   function updateFilter(prefix: string, value: string) {
     setSelectedFilters((current) => ({
@@ -793,7 +850,7 @@ export function CatalogPage({
       }
 
       const nextQuery = nextParams.toString();
-      const nextUrl = nextQuery ? `/catalog?${nextQuery}` : '/catalog';
+      const nextUrl = nextQuery ? `${catalogPath}?${nextQuery}` : catalogPath;
 
       window.history.pushState({}, '', nextUrl);
       setUrlParams(nextParams);
@@ -818,14 +875,14 @@ export function CatalogPage({
     nextParams.delete('category');
 
     const nextQuery = nextParams.toString();
-    const nextUrl = nextQuery ? `/catalog?${nextQuery}` : '/catalog';
+    const nextUrl = nextQuery ? `${catalogPath}?${nextQuery}` : catalogPath;
 
     window.history.pushState({}, '', nextUrl);
     setUrlParams(nextParams);
   }
 
   function clearSearch() {
-    window.history.pushState({}, '', '/catalog');
+    window.history.pushState({}, '', catalogPath);
     setUrlParams(new URLSearchParams(''));
     setSelectedFilters({});
     setCurrentPage(1);
@@ -940,6 +997,8 @@ export function CatalogPage({
     if (prefix === 'make_') return vehicleMakeFilter;
     return '';
   }
+
+  if (isLoading && indexLoadingFallback) return <>{indexLoadingFallback}</>;
 
   return (
     <>
@@ -1092,7 +1151,20 @@ export function CatalogPage({
 
           <div id="catalog-results" className="scroll-mt-28" />
 
-          {isLoading ? (
+          {resultsError ? (
+            <div role="alert" className="rounded-[2rem] border border-[#EAE7DF] bg-white/85 p-10 text-center shadow-sm">
+              <p className="mb-4 font-bold text-[#111111]">{resultsError}</p>
+              <button
+                type="button"
+                onClick={() => indexError
+                  ? setIndexRetry((value) => value + 1)
+                  : setPageRetry((value) => value + 1)}
+                className="rounded-2xl bg-[#0F5A46] px-5 py-3 font-bold text-white"
+              >
+                Try again
+              </button>
+            </div>
+          ) : resultsLoading ? (
             <div className="grid animate-pulse grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({length: 8}).map((_, index) => (
                 <div

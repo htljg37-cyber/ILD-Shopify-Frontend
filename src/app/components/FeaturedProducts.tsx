@@ -84,12 +84,14 @@ async function saveCustomerCart(cart: any) {
 const FeaturedProductCard = memo(function FeaturedProductCard({
   product,
   index,
+  categoryCount,
   isAdding,
   isAdded,
   onQuickAdd,
 }: {
   product: any;
   index: number;
+  categoryCount: number;
   isAdding: boolean;
   isAdded: boolean;
   onQuickAdd: (product: any) => void;
@@ -105,9 +107,9 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
       className={`group relative overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white shadow-[0_8px_20px_rgba(17,17,17,0.05)] [content-visibility:auto] [contain-intrinsic-size:560px] ${
         isOutOfStock ? 'opacity-80' : ''
       } ${
-        index >= 4
+        index >= Math.max(4, categoryCount)
           ? 'hidden lg:block'
-          : index >= 2
+          : index >= Math.max(2, categoryCount)
             ? 'hidden sm:block'
             : ''
       }`}
@@ -279,20 +281,59 @@ export function FeaturedProducts() {
     };
   }, []);
 
-  const featuredProducts = useMemo(
-    () =>
-      [...products]
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt || 0).getTime() -
-            new Date(a.createdAt || 0).getTime()
-        )
-        .slice(0, 12),
-    [products]
-  );
+  const {featuredProducts, mainProductCount, categoryCount} = useMemo(() => {
+    const sortedProducts = [...products].sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
+    );
+    const groups = new Map<string, any[]>();
+    const uncategorized: any[] = [];
+    const seen = new Set<string>();
 
-  const mainProducts = featuredProducts.slice(0, 8);
-  const previewProducts = featuredProducts.slice(8, 12);
+    for (const product of sortedProducts) {
+      if (!product?.id || seen.has(product.id)) continue;
+      seen.add(product.id);
+      const category = getCategoryLabel(product).toLowerCase();
+      if (!category) {
+        uncategorized.push(product);
+        continue;
+      }
+      const group = groups.get(category);
+      if (group) group.push(product);
+      else groups.set(category, [product]);
+    }
+
+    const mainProductCount = Math.max(8, groups.size);
+    const limit = mainProductCount + 4;
+    const selected: any[] = [];
+    const categoryGroups = Array.from(groups.values());
+
+    for (let round = 0; selected.length < limit; round += 1) {
+      let added = false;
+      for (const group of categoryGroups) {
+        if (selected.length >= limit) break;
+        if (group[round]) {
+          selected.push(group[round]);
+          added = true;
+        }
+      }
+      if (!added) break;
+    }
+    selected.push(...uncategorized.slice(0, limit - selected.length));
+
+    return {
+      featuredProducts: selected,
+      mainProductCount,
+      categoryCount: groups.size,
+    };
+  }, [products]);
+
+  const mainProducts = featuredProducts.slice(0, mainProductCount);
+  const previewProducts = featuredProducts.slice(
+    mainProductCount,
+    mainProductCount + 4
+  );
 
   const showCartToast = useCallback((product: any) => {
     setCartToast({
@@ -417,6 +458,7 @@ export function FeaturedProducts() {
                   key={product.id}
                   product={product}
                   index={index}
+                  categoryCount={categoryCount}
                   isAdding={addingId === product.id}
                   isAdded={addedId === product.id}
                   onQuickAdd={handleQuickAdd}
