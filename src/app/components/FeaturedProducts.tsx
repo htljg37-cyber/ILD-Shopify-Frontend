@@ -25,6 +25,23 @@ function getOptimizedProductImage(url = '', width = 560) {
   }
 }
 
+function getCategoryLabel(product: any): string {
+  const tags: unknown[] = Array.isArray(product?.tags) ? product.tags : [];
+  const categoryTag = tags.find(
+    (tag): tag is string =>
+      typeof tag === 'string' && /^category_\S/i.test(tag.trim())
+  );
+
+  if (typeof categoryTag !== 'string') return '';
+
+  return categoryTag
+    .trim()
+    .replace(/^category_/i, '')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function getPriceInfo(product: any) {
   const selectedVariant = product?.selectedVariant || product?.variants?.[0];
   const price = Number(
@@ -81,6 +98,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
   const {price, compareAtPrice, hasCompareAtPrice, discountPercent} =
     getPriceInfo(product);
   const shippingLabel = getShippingLabel(product);
+  const categoryLabel = getCategoryLabel(product);
 
   return (
     <article
@@ -123,12 +141,12 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
           <span className="absolute left-4 right-4 top-4 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.16em] text-white">
             Out of Stock
           </span>
-        ) : (
+        ) : categoryLabel ? (
           <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-[#0F5A46] px-3 py-1.5 text-xs font-bold text-white shadow-[0_6px_14px_rgba(15,90,70,0.18)]">
             <Star className="h-3.5 w-3.5 fill-[#C8A45D] text-[#C8A45D]" />
-            Featured
+            {categoryLabel}
           </span>
-        )}
+        ) : null}
 
         {hasCompareAtPrice && !isOutOfStock && (
           <span className="absolute right-4 top-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-white">
@@ -166,13 +184,6 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
       </div>
 
       <div className="p-5">
-        <div className="mb-3 flex items-center gap-1">
-          <Star className="h-4 w-4 fill-[#C8A45D] text-[#C8A45D]" />
-          <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#0F5A46]">
-            {isOutOfStock ? 'Unavailable' : 'Featured'}
-          </span>
-        </div>
-
         <a href={`/product/${product.handle}`}>
           <h3 className="mb-3 line-clamp-2 text-base font-bold tracking-tight text-[#111111] transition-colors hover:text-[#0F5A46] md:text-lg">
             {product.title}

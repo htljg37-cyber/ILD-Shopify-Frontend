@@ -39,6 +39,23 @@ function formatMoney(amount: number) {
   return `$${amount.toFixed(2)}`;
 }
 
+function getCategoryLabel(product: any): string {
+  const tags: unknown[] = Array.isArray(product?.tags) ? product.tags : [];
+  const categoryTag = tags.find(
+    (tag): tag is string =>
+      typeof tag === 'string' && /^category_\S/i.test(tag.trim())
+  );
+
+  if (typeof categoryTag !== 'string') return '';
+
+  return categoryTag
+    .trim()
+    .replace(/^category_/i, '')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function getPriceInfo(product: any) {
   const selectedVariant = product?.selectedVariant || product?.variants?.[0];
 
@@ -380,6 +397,7 @@ const ProductCard = memo(function ProductCard({
   const {price, compareAtPrice, hasCompareAtPrice, discountPercent} =
     getPriceInfo(product);
   const shippingLabel = getShippingLabel(product);
+  const categoryLabel = getCategoryLabel(product);
   const imageUrl = product.featuredImage?.url || '';
 
   return (
@@ -418,12 +436,12 @@ const ProductCard = memo(function ProductCard({
           <div className="absolute left-4 right-4 top-4 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-white shadow-sm">
             Out of Stock
           </div>
-        ) : (
+        ) : categoryLabel ? (
           <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-[#0F5A46] px-3 py-1.5 text-xs font-bold text-white shadow-sm">
             <Star className="h-3.5 w-3.5 fill-[#C8A45D] text-[#C8A45D]" />
-            Featured
+            {categoryLabel}
           </div>
-        )}
+        ) : null}
 
         {hasCompareAtPrice && !isOutOfStock && (
           <div className="absolute right-4 top-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-sm">
@@ -457,18 +475,6 @@ const ProductCard = memo(function ProductCard({
       </div>
 
       <div className="relative p-5">
-        <div className="mb-3">
-          <span
-            className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] ${
-              isOutOfStock
-                ? 'bg-[#111111]/10 text-[#111111]'
-                : 'bg-[#0F5A46]/10 text-[#0F5A46]'
-            }`}
-          >
-            {isOutOfStock ? 'Unavailable' : 'Available'}
-          </span>
-        </div>
-
         <h3 className="mb-3 line-clamp-2 text-base font-bold tracking-tight text-[#111111] transition-colors duration-200 group-hover:text-[#0F5A46] md:text-lg">
           {product.title}
         </h3>
