@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 // Serves /product/:handle with the product's own <title>, meta description,
 // Open Graph/Twitter tags, canonical URL and Product structured data already
@@ -38,12 +40,43 @@ function truncate(value: string, max: number) {
   return `${clean.slice(0, max - 1).replace(/\s+\S*$/, '')}…`;
 }
 
+// The built app shell is bundled with this function (see "includeFiles" in
+// vercel.json) and read from disk. Fetching it over HTTP from the same host is
+// only a fallback: on protected preview deployments that request receives
+// Vercel's login page instead of the store.
+let cachedIndexHtml: string | null = null;
+
+function isAppShell(html: string) {
+  return html.includes('id="root"');
+}
+
 async function loadIndexHtml(req: VercelRequest) {
+  if (cachedIndexHtml) return cachedIndexHtml;
+
+  for (const file of [
+    join(process.cwd(), 'dist', 'index.html'),
+    join(process.cwd(), 'index.html'),
+  ]) {
+    try {
+      const html = await readFile(file, 'utf8');
+      // The source index.html (pointing at /src/main.tsx) is not the built shell.
+      if (isAppShell(html) && !html.includes('/src/main.tsx')) {
+        cachedIndexHtml = html;
+        return html;
+      }
+    } catch {
+      // try the next location
+    }
+  }
+
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const response = await fetch(`${proto}://${host}/index.html`);
-  if (!response.ok) throw new Error(`index.html ${response.status}`);
-  return response.text();
+  const html = await response.text();
+  if (!response.ok || !isAppShell(html)) {
+    throw new Error('Built index.html not available');
+  }
+  return html;
 }
 
 async function loadProduct(handle: string) {

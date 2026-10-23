@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/seo/product.ts": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
