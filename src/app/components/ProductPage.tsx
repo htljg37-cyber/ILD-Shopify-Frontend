@@ -35,6 +35,7 @@ import {
 import {Button} from './ui/button';
 
 import {addToCart, createCart, getProductByHandle} from '../../lib/shopify';
+import {getGaCheckoutAttributes} from '../../lib/gaIds';
 
 import {getShippingLabel} from '../../lib/shipping';
 
@@ -1812,7 +1813,7 @@ export function ProductPage({
 
     try {
 
-      const cart = await createCart(variantId, 1);
+      const cart = await createCart(variantId, 1, getGaCheckoutAttributes());
 
 
 
