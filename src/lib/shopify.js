@@ -1839,7 +1839,7 @@ async function validateVariantStock(variantId, quantity = 1) {
 
 
 
-export async function createCart(variantId, quantity = 1) {
+export async function createCart(variantId, quantity = 1, attributes = []) {
 
 
 
@@ -1972,6 +1972,8 @@ export async function createCart(variantId, quantity = 1) {
 
 
       ],
+
+      ...(attributes.length ? { attributes } : {}),
 
 
 

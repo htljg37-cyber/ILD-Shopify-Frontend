@@ -8,6 +8,8 @@ import {
   Truck,
 } from 'lucide-react';
 import {getCart, removeCartLine, updateCartLine} from '../../lib/shopify';
+import {appendGaAttributesToUrl} from '../../lib/gaIds';
+import {trackBeginCheckout} from '../../lib/analytics';
 
 function getOptimizedImageUrl(url?: string) {
   if (!url) return '';
@@ -289,8 +291,26 @@ export default function CartPage() {
       })
       .join(',');
 
-    window.location.href =
-      `https://il-distributions-llc.myshopify.com/cart/${cartItems}`;
+    const checkoutItems = lines.map((item: any) => ({
+      item_id: item.node.merchandise.id,
+      item_name: item.node.merchandise.product?.title,
+      item_variant: item.node.merchandise.title,
+      price: Number(item.node.merchandise.price?.amount || 0),
+      quantity: item.node.quantity,
+    }));
+    trackBeginCheckout(
+      checkoutItems,
+      checkoutItems.reduce((total, item) => total + item.price * item.quantity, 0),
+      cart?.cost?.subtotalAmount?.currencyCode || 'USD'
+    );
+
+    const checkoutUrl = appendGaAttributesToUrl(
+      `https://il-distributions-llc.myshopify.com/cart/${cartItems}`
+    );
+    // Short delay so the begin_checkout event is sent before leaving the site.
+    window.setTimeout(() => {
+      window.location.href = checkoutUrl;
+    }, 250);
   }
 
   return (
