@@ -828,6 +828,26 @@ export function ProductPage({
 
   const [product, setProduct] = useState<any>(null);
 
+  // Keep the browser tab title (and Google Analytics page_title) in sync with
+  // the product's SEO title when navigating inside the app.
+  useEffect(() => {
+    if (!product) return;
+    const previousTitle = document.title;
+    document.title = product.seo?.title || `${product.title} | ILD`;
+    const description = product.seo?.description;
+    const descriptionTag = document.querySelector('meta[name="description"]');
+    const previousDescription = descriptionTag?.getAttribute('content') || '';
+    if (description && descriptionTag) {
+      descriptionTag.setAttribute('content', description);
+    }
+    return () => {
+      document.title = previousTitle;
+      if (description && descriptionTag) {
+        descriptionTag.setAttribute('content', previousDescription);
+      }
+    };
+  }, [product]);
+
   const [selectedVariantId, setSelectedVariantId] = useState('');
 
   const [variantImageRequest, setVariantImageRequest] = useState(0);

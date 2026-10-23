@@ -731,9 +731,14 @@ const productFields = `
 
 // Product detail pages can contain many images and variants. Collection/list
 // requests keep the smaller connections to avoid unnecessary payload.
-const productDetailFields = productFields
+const productDetailFields = `${productFields
   .replace('images(first: 10)', 'images(first: 250)')
-  .replace('variants(first: 10)', 'variants(first: 250)');
+  .replace('variants(first: 10)', 'variants(first: 250)')}
+  seo {
+    title
+    description
+  }
+`;
 
 
 
