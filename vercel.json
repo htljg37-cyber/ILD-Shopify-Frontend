@@ -1,8 +1,17 @@
 {
+  "functions": {
+    "api/seo/product.ts": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
+    },
+    {
+      "source": "/product/:handle",
+      "destination": "/api/seo/product?handle=:handle"
     },
     {
       "source": "/(.*)",
