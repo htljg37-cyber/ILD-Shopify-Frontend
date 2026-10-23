@@ -16,6 +16,7 @@ const PRODUCT_SEO_QUERY = `
       title
       handle
       vendor
+      tags
       description
       availableForSale
       seo { title description }
@@ -97,6 +98,31 @@ async function loadProduct(handle: string) {
   return json?.data?.product || null;
 }
 
+const BRAND_NAMES: Record<string, string> = {
+  'mini gt': 'MINI GT',
+  'funko pop!': 'Funko',
+  sega: 'SEGA',
+  furyu: 'FuRyu',
+  'mijo exclusives': 'MiJo Exclusives',
+};
+
+// Products store the manufacturer as a "brand_<Name>" tag (any capitalization
+// of the prefix). Use it for structured data; fall back to the store itself.
+function getBrand(product: any) {
+  const tag = (product.tags || []).find((t: string) => /^brand_/i.test(t));
+  if (tag) {
+    const raw = tag.replace(/^brand_/i, '').replace(/_/g, ' ').trim();
+    const known = BRAND_NAMES[raw.toLowerCase()];
+    if (known) return known;
+    if (raw && raw === raw.toLowerCase()) {
+      return raw.replace(/\b\w/g, (c: string) => c.toUpperCase());
+    }
+    if (raw) return raw;
+  }
+  if (product.vendor && product.vendor !== 'Printify') return product.vendor;
+  return 'IL Distributions LLC';
+}
+
 function replaceTag(html: string, pattern: RegExp, replacement: string) {
   return pattern.test(html) ? html.replace(pattern, replacement) : html;
 }
@@ -134,7 +160,7 @@ function injectSeo(html: string, product: any, url: string) {
     description,
     image: [image],
     url,
-    brand: product.vendor ? { '@type': 'Brand', name: product.vendor } : undefined,
+    brand: { '@type': 'Brand', name: getBrand(product) },
     sku: product.selectedOrFirstAvailableVariant?.sku || undefined,
     gtin: product.selectedOrFirstAvailableVariant?.barcode || undefined,
     offers: price
