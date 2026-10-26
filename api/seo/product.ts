@@ -130,6 +130,66 @@ function getBrand(product: any) {
   return 'IL Distributions LLC';
 }
 
+// Return policy shown on /returns-policy: 30 days from delivery, customer
+// pays return shipping (unless the item arrived damaged/defective/incorrect).
+const RETURN_POLICY = {
+  '@type': 'MerchantReturnPolicy',
+  applicableCountry: 'US',
+  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+  merchantReturnDays: 30,
+  returnMethod: 'https://schema.org/ReturnByMail',
+  returnFees: 'https://schema.org/ReturnShippingFees',
+};
+
+// Mirrors src/lib/shipping.ts so Google gets the same shipping cost the
+// product page shows. Returns null when the page itself has no fixed US
+// rate (local-delivery-only items, or "calculated at checkout").
+function getUsShippingRate(tags: string[]): number | null {
+  if (tags.some((tag) => tag.startsWith('shipping_local'))) return null;
+  if (tags.includes('shipping_free')) return 0;
+  const flat = tags.find((tag) => tag.startsWith('shipping_us_'));
+  if (flat) {
+    const amount = Number(flat.replace('shipping_us_', '')) / 100;
+    if (!Number.isNaN(amount)) return amount;
+  }
+  return null;
+}
+
+// delivery_<min>_<max> is the total estimate the page shows ("3-7 business
+// days"). Google adds handling + transit, so split it to keep the same total.
+function getDeliveryTime(tags: string[]) {
+  for (const tag of tags) {
+    const match = tag.trim().match(/^delivery_(\d{1,2})_(\d{1,2})$/i);
+    if (!match) continue;
+    const min = Number(match[1]);
+    const max = Number(match[2]);
+    if (!min || !max || max < min) continue;
+    return {
+      '@type': 'ShippingDeliveryTime',
+      handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+      transitTime: {
+        '@type': 'QuantitativeValue',
+        minValue: min,
+        maxValue: Math.max(min, max - 1),
+        unitCode: 'DAY',
+      },
+    };
+  }
+  return undefined;
+}
+
+function getShippingDetails(product: any) {
+  const tags: string[] = (product.tags || []).filter((tag: unknown) => typeof tag === 'string');
+  const rate = getUsShippingRate(tags);
+  if (rate === null) return undefined;
+  return {
+    '@type': 'OfferShippingDetails',
+    shippingRate: { '@type': 'MonetaryAmount', value: rate.toFixed(2), currency: 'USD' },
+    shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'US' },
+    deliveryTime: getDeliveryTime(tags),
+  };
+}
+
 function replaceTag(html: string, pattern: RegExp, replacement: string) {
   return pattern.test(html) ? html.replace(pattern, replacement) : html;
 }
@@ -180,6 +240,8 @@ function injectSeo(html: string, product: any, url: string) {
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock',
           itemCondition: 'https://schema.org/NewCondition',
+          shippingDetails: getShippingDetails(product),
+          hasMerchantReturnPolicy: RETURN_POLICY,
         }
       : undefined,
   };
