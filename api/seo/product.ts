@@ -149,7 +149,32 @@ function injectSeo(html: string, product: any, url: string) {
   return out.replace('</head>', `    ${extraHead}\n  </head>`);
 }
 
+// Also serves routes Google should not index (kept in this same function
+// because the Vercel Hobby plan allows at most 12 functions per deployment):
+//   mode=notfound -> any URL the site does not have: real 404 + noindex.
+//                    Visitors still get the store (the app shows its home page).
+//   mode=private  -> cart, wishlist, orders, account, track order: 200 + noindex.
+async function serveShell(req: VercelRequest, res: VercelResponse, mode: string) {
+  let html: string;
+  try {
+    html = await loadIndexHtml(req);
+  } catch {
+    res.status(500).send('Unable to load page');
+    return;
+  }
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('X-Robots-Tag', 'noindex');
+  res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+  res.status(mode === 'private' ? 200 : 404).send(addNoindex(html));
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const mode = String(req.query.mode || '');
+  if (mode === 'notfound' || mode === 'private') {
+    await serveShell(req, res, mode);
+    return;
+  }
+
   const handle = String(req.query.handle || '').replace(/[^a-z0-9-]/gi, '');
 
   let html: string;

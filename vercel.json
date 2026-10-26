@@ -2,9 +2,6 @@
   "functions": {
     "api/seo/product.ts": {
       "includeFiles": "dist/index.html"
-    },
-    "api/seo/shell.ts": {
-      "includeFiles": "dist/index.html"
     }
   },
   "redirects": [
@@ -60,7 +57,7 @@
     },
     {
       "source": "/(cart|wishlist|orders|account|track-order)",
-      "destination": "/api/seo/shell?mode=private"
+      "destination": "/api/seo/product?mode=private"
     },
     {
       "source": "/",
@@ -76,7 +73,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/api/seo/shell?mode=notfound"
+      "destination": "/api/seo/product?mode=notfound"
     }
   ]
 }
