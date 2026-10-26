@@ -7,6 +7,48 @@
       "includeFiles": "dist/index.html"
     }
   },
+  "redirects": [
+    {
+      "source": "/products/:handle",
+      "destination": "/product/:handle",
+      "permanent": true
+    },
+    {
+      "source": "/products",
+      "destination": "/catalog",
+      "permanent": true
+    },
+    {
+      "source": "/collections/all",
+      "destination": "/catalog",
+      "permanent": true
+    },
+    {
+      "source": "/policies/contact-information",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/policies/privacy-policy",
+      "destination": "/privacy-policy",
+      "permanent": true
+    },
+    {
+      "source": "/policies/terms-of-service",
+      "destination": "/terms-of-service",
+      "permanent": true
+    },
+    {
+      "source": "/policies/shipping-policy",
+      "destination": "/shipping-policy",
+      "permanent": true
+    },
+    {
+      "source": "/policies/refund-policy",
+      "destination": "/returns-policy",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
