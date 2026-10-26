@@ -4,7 +4,7 @@ export function ShippingPolicyPage() {
   return (
     <PolicyPage
       title="Shipping Policy"
-      lastUpdated="May 2026"
+      lastUpdated="October 2026"
     >
       <div>
         <h2 className="text-2xl font-semibold text-[#111111] mb-3">
@@ -12,9 +12,11 @@ export function ShippingPolicyPage() {
         </h2>
 
         <p>
-          Orders are typically processed within 1–3 business days after
-          payment confirmation. Processing times may vary during holidays,
-          promotions, or high-demand periods.
+          Processing times vary by product. Most in-stock items ship within
+          1 business day after payment confirmation, while made-to-order and
+          partner-fulfilled items (such as custom apparel) may take longer to
+          prepare. Please check the estimated delivery time shown on each
+          product page before placing your order.
         </p>
       </div>
 
@@ -47,8 +49,12 @@ export function ShippingPolicyPage() {
         </h2>
 
         <p>
-          Delivery estimates may vary depending on the shipping destination,
-          carrier delays, weather conditions, or product availability.
+          Each product page shows an estimated delivery window that includes
+          both processing and shipping time. This estimate is approximate and
+          may vary depending on the shipping destination, carrier delays,
+          weather conditions, holidays, or product availability. If your order
+          includes items with different delivery estimates, they may arrive
+          separately.
         </p>
       </div>
 
