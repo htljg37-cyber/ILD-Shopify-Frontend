@@ -2,6 +2,9 @@
   "functions": {
     "api/seo/product.ts": {
       "includeFiles": "dist/index.html"
+    },
+    "api/seo/shell.ts": {
+      "includeFiles": "dist/index.html"
     }
   },
   "rewrites": [
@@ -14,8 +17,24 @@
       "destination": "/api/seo/product?handle=:handle"
     },
     {
-      "source": "/(.*)",
+      "source": "/(cart|wishlist|orders|account|track-order)",
+      "destination": "/api/seo/shell?mode=private"
+    },
+    {
+      "source": "/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/(catalog|new-arrivals|collections|brands|contact|privacy-policy|terms-of-service|shipping-policy|returns-policy)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/collections/:handle",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/seo/shell?mode=notfound"
     }
   ]
 }

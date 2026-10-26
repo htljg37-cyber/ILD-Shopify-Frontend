@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { addNoindex, loadIndexHtml } from './_shell';
 
 // Serves /product/:handle with the product's own <title>, meta description,
 // Open Graph/Twitter tags, canonical URL and Product structured data already
@@ -41,49 +40,10 @@ function truncate(value: string, max: number) {
   return `${clean.slice(0, max - 1).replace(/\s+\S*$/, '')}…`;
 }
 
-// The built app shell is bundled with this function (see "includeFiles" in
-// vercel.json) and read from disk. Fetching it over HTTP from the same host is
-// only a fallback: on protected preview deployments that request receives
-// Vercel's login page instead of the store.
-let cachedIndexHtml: string | null = null;
-
-function isAppShell(html: string) {
-  return html.includes('id="root"');
-}
-
-async function loadIndexHtml(req: VercelRequest) {
-  if (cachedIndexHtml) return cachedIndexHtml;
-
-  for (const file of [
-    join(process.cwd(), 'dist', 'index.html'),
-    join(process.cwd(), 'index.html'),
-  ]) {
-    try {
-      const html = await readFile(file, 'utf8');
-      // The source index.html (pointing at /src/main.tsx) is not the built shell.
-      if (isAppShell(html) && !html.includes('/src/main.tsx')) {
-        cachedIndexHtml = html;
-        return html;
-      }
-    } catch {
-      // try the next location
-    }
-  }
-
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  const response = await fetch(`${proto}://${host}/index.html`);
-  const html = await response.text();
-  if (!response.ok || !isAppShell(html)) {
-    throw new Error('Built index.html not available');
-  }
-  return html;
-}
-
 async function loadProduct(handle: string) {
   const domain = process.env.VITE_SHOPIFY_STORE_DOMAIN;
   const token = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
-  if (!domain || !token) return null;
+  if (!domain || !token) throw new Error('Missing Shopify environment variables');
 
   const response = await fetch(`https://${domain}/api/${API_VERSION}/graphql.json`, {
     method: 'POST',
@@ -93,9 +53,11 @@ async function loadProduct(handle: string) {
     },
     body: JSON.stringify({ query: PRODUCT_SEO_QUERY, variables: { handle } }),
   });
-  if (!response.ok) return null;
+  if (!response.ok) throw new Error(`Storefront API ${response.status}`);
   const json = await response.json();
-  return json?.data?.product || null;
+  if (json?.errors?.length || !json?.data) throw new Error('Storefront API error');
+  // null here means Shopify has no product with this handle.
+  return json.data.product || null;
 }
 
 const BRAND_NAMES: Record<string, string> = {
@@ -200,6 +162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
+  let status = 200;
   try {
     const product = handle ? await loadProduct(handle) : null;
     if (product) {
@@ -207,12 +170,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Cache at the edge for 10 minutes, serve stale while refreshing.
       res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
     } else {
-      res.setHeader('Cache-Control', 'public, s-maxage=60');
+      // The product does not exist (deleted, renamed or mistyped URL): answer
+      // with a real 404 so Google drops it instead of reporting a "soft 404".
+      status = 404;
+      html = addNoindex(html);
+      res.setHeader('Cache-Control', 'public, s-maxage=300');
     }
   } catch {
-    // On any error fall back to the plain app shell so the page still works.
+    // Shopify could not be reached: serve the normal page so it still works.
     res.setHeader('Cache-Control', 'public, s-maxage=60');
   }
 
-  res.status(200).send(html);
+  res.status(status).send(html);
 }
