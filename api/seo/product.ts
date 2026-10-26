@@ -80,10 +80,15 @@ async function loadIndexHtml(req: VercelRequest) {
   return html;
 }
 
+function addNoindex(html: string) {
+  if (html.includes('name="robots"')) return html;
+  return html.replace('</head>', '    <meta name="robots" content="noindex" />\n  </head>');
+}
+
 async function loadProduct(handle: string) {
   const domain = process.env.VITE_SHOPIFY_STORE_DOMAIN;
   const token = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
-  if (!domain || !token) return null;
+  if (!domain || !token) throw new Error('Missing Shopify environment variables');
 
   const response = await fetch(`https://${domain}/api/${API_VERSION}/graphql.json`, {
     method: 'POST',
@@ -93,9 +98,11 @@ async function loadProduct(handle: string) {
     },
     body: JSON.stringify({ query: PRODUCT_SEO_QUERY, variables: { handle } }),
   });
-  if (!response.ok) return null;
+  if (!response.ok) throw new Error(`Storefront API ${response.status}`);
   const json = await response.json();
-  return json?.data?.product || null;
+  if (json?.errors?.length || !json?.data) throw new Error('Storefront API error');
+  // null here means Shopify has no product with this handle.
+  return json.data.product || null;
 }
 
 const BRAND_NAMES: Record<string, string> = {
@@ -187,7 +194,32 @@ function injectSeo(html: string, product: any, url: string) {
   return out.replace('</head>', `    ${extraHead}\n  </head>`);
 }
 
+// Also serves routes Google should not index (kept in this same function
+// because the Vercel Hobby plan allows at most 12 functions per deployment):
+//   mode=notfound -> any URL the site does not have: real 404 + noindex.
+//                    Visitors still get the store (the app shows its home page).
+//   mode=private  -> cart, wishlist, orders, account, track order: 200 + noindex.
+async function serveShell(req: VercelRequest, res: VercelResponse, mode: string) {
+  let html: string;
+  try {
+    html = await loadIndexHtml(req);
+  } catch {
+    res.status(500).send('Unable to load page');
+    return;
+  }
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('X-Robots-Tag', 'noindex');
+  res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+  res.status(mode === 'private' ? 200 : 404).send(addNoindex(html));
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const mode = String(req.query.mode || '');
+  if (mode === 'notfound' || mode === 'private') {
+    await serveShell(req, res, mode);
+    return;
+  }
+
   const handle = String(req.query.handle || '').replace(/[^a-z0-9-]/gi, '');
 
   let html: string;
@@ -200,6 +232,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
+  let status = 200;
   try {
     const product = handle ? await loadProduct(handle) : null;
     if (product) {
@@ -207,12 +240,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Cache at the edge for 10 minutes, serve stale while refreshing.
       res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
     } else {
-      res.setHeader('Cache-Control', 'public, s-maxage=60');
+      // The product does not exist (deleted, renamed or mistyped URL): answer
+      // with a real 404 so Google drops it instead of reporting a "soft 404".
+      status = 404;
+      html = addNoindex(html);
+      res.setHeader('Cache-Control', 'public, s-maxage=300');
     }
   } catch {
-    // On any error fall back to the plain app shell so the page still works.
+    // Shopify could not be reached: serve the normal page so it still works.
     res.setHeader('Cache-Control', 'public, s-maxage=60');
   }
 
-  res.status(200).send(html);
+  res.status(status).send(html);
 }
