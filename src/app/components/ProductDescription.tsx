@@ -30,7 +30,50 @@ const specificationLabels = [
   'country of manufacture',
   'please note',
   'package includes',
+  // Figuras y coleccionables
+  'character',
+  'franchise',
+  'height',
+  // Ropa
+  'fit',
+  'fabric weight',
+  'sizes',
+  'print',
+  'fulfillment time',
+  // Flores
+  'flower type',
+  'quantity',
+  'lifespan',
+  'container',
+  'display',
+  'delivery',
+  'delivery area',
+  // Dioramas, vitrinas y kits
+  'compatible scale',
+  'lighting',
+  'power',
+  'assembly',
+  'includes',
+  'opening parts',
 ];
+
+/*
+ * Dentro del bloque de especificaciones aceptamos cualquier línea con el
+ * formato "Etiqueta: valor", aunque la etiqueta no esté en la lista de
+ * arriba. Así cada categoría puede usar sus propias especificaciones
+ * (Fit, Sizes, Flower Type...) sin que terminen en "Care & Display".
+ * La etiqueta debe ser corta (máx. 4 palabras) para no confundir frases
+ * normales que contienen dos puntos.
+ */
+const genericSpecificationLabel = /^[A-Za-z][A-Za-z0-9 &/().'’-]{1,29}$/;
+
+function isGenericSpecificationLabel(label: string) {
+  return (
+    genericSpecificationLabel.test(label) &&
+    label.trim().split(/\s+/).length <= 4 &&
+    !/https?/i.test(label)
+  );
+}
 
 function htmlToLines(html: string) {
   if (!html) return [];
@@ -145,7 +188,10 @@ function splitFeatureItems(line: string) {
   return items.length > 0 ? items : [cleanBullet(cleanedLine)];
 }
 
-function parseSpecification(line: string): Specification | null {
+function parseSpecification(
+  line: string,
+  allowAnyLabel = false
+): Specification | null {
   const match = line.match(/^([^:]{2,40}):\s*(.+)$/);
 
   if (!match) return null;
@@ -158,7 +204,11 @@ function parseSpecification(line: string): Specification | null {
     (allowedLabel) => normalizedLabel === allowedLabel
   );
 
-  if (!isRecognizedLabel || !value) return null;
+  const isAcceptedLabel =
+    isRecognizedLabel ||
+    (allowAnyLabel && isGenericSpecificationLabel(label));
+
+  if (!isAcceptedLabel || !value) return null;
 
   return {
     label,
@@ -210,7 +260,10 @@ function parseDescription(html: string) {
       return;
     }
 
-    const specification = parseSpecification(line);
+    const specification = parseSpecification(
+      line,
+      currentSection === 'specifications'
+    );
 
     /*
      * El formato recomendado no necesita obligatoriamente un encabezado
