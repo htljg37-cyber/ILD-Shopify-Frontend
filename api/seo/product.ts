@@ -7,7 +7,11 @@ import { join } from 'node:path';
 // in the HTML, so Google and social previews see the product instead of the
 // generic store title. The React app then boots normally on top of it.
 
-const SITE_URL = (process.env.SITE_URL || 'https://www.ildistributions.com').replace(/\/$/, '');
+// The live site answers on www, so canonical and sitemap URLs must use www
+// too; a bare-domain SITE_URL would point Google at a redirect.
+const SITE_URL = (process.env.SITE_URL || 'https://www.ildistributions.com')
+  .replace(/\/$/, '')
+  .replace('://ildistributions.com', '://www.ildistributions.com');
 const API_VERSION = '2024-10';
 
 const PRODUCT_SEO_QUERY = `
@@ -256,6 +260,117 @@ function injectSeo(html: string, product: any, url: string) {
   return out.replace('</head>', `    ${extraHead}\n  </head>`);
 }
 
+// ---------------------------------------------------------------------------
+// /sitemap.xml (mode=sitemap). Lives in this function because the Vercel
+// Hobby plan allows at most 12 functions and all 12 are in use.
+
+const STATIC_PATHS = [
+  '/',
+  '/catalog',
+  '/new-arrivals',
+  '/collections',
+  '/brands',
+  '/contact',
+  '/shipping-policy',
+  '/returns-policy',
+  '/privacy-policy',
+  '/terms-of-service',
+];
+
+const SITEMAP_QUERY = `
+  query SitemapPage($productCursor: String, $collectionCursor: String, $withCollections: Boolean!) {
+    products(first: 250, after: $productCursor) {
+      pageInfo { hasNextPage endCursor }
+      nodes { handle updatedAt }
+    }
+    collections(first: 250, after: $collectionCursor) @include(if: $withCollections) {
+      pageInfo { hasNextPage endCursor }
+      nodes { handle updatedAt }
+    }
+  }
+`;
+
+async function storefront(query: string, variables: Record<string, unknown>) {
+  const domain = process.env.VITE_SHOPIFY_STORE_DOMAIN;
+  const token = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
+  if (!domain || !token) throw new Error('Missing Shopify environment variables');
+  const response = await fetch(`https://${domain}/api/${API_VERSION}/graphql.json`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Storefront-Access-Token': token,
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!response.ok) throw new Error(`Storefront API ${response.status}`);
+  const json = await response.json();
+  if (json?.errors?.length || !json?.data) throw new Error('Storefront API error');
+  return json.data;
+}
+
+type SitemapEntry = { loc: string; lastmod?: string };
+
+async function loadSitemapEntries(): Promise<SitemapEntry[]> {
+  const entries: SitemapEntry[] = STATIC_PATHS.map((path) => ({ loc: `${SITE_URL}${path}` }));
+  let productCursor: string | null = null;
+  let collectionCursor: string | null = null;
+  let moreProducts = true;
+  let moreCollections = true;
+
+  // At most 20 pages (5,000 products) as a safety stop.
+  for (let page = 0; page < 20 && (moreProducts || moreCollections); page += 1) {
+    const data = await storefront(SITEMAP_QUERY, {
+      productCursor,
+      collectionCursor,
+      withCollections: moreCollections,
+    });
+
+    if (moreProducts) {
+      for (const node of data.products.nodes) {
+        entries.push({ loc: `${SITE_URL}/product/${node.handle}`, lastmod: node.updatedAt });
+      }
+      moreProducts = data.products.pageInfo.hasNextPage;
+      productCursor = data.products.pageInfo.endCursor;
+    }
+
+    if (moreCollections && data.collections) {
+      for (const node of data.collections.nodes) {
+        // /collections/all is redirected to /catalog, so it is not listed.
+        if (node.handle === 'all') continue;
+        entries.push({ loc: `${SITE_URL}/collections/${node.handle}`, lastmod: node.updatedAt });
+      }
+      moreCollections = data.collections.pageInfo.hasNextPage;
+      collectionCursor = data.collections.pageInfo.endCursor;
+    } else {
+      moreCollections = false;
+    }
+  }
+
+  return entries;
+}
+
+function buildSitemapXml(entries: SitemapEntry[]) {
+  const urls = entries
+    .map((entry) => {
+      const lastmod = entry.lastmod ? `<lastmod>${escapeHtml(entry.lastmod.slice(0, 10))}</lastmod>` : '';
+      return `  <url><loc>${escapeHtml(entry.loc)}</loc>${lastmod}</url>`;
+    })
+    .join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+}
+
+async function serveSitemap(res: VercelResponse) {
+  try {
+    const xml = buildSitemapXml(await loadSitemapEntries());
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    res.status(200).send(xml);
+  } catch {
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(503).send('Sitemap temporarily unavailable');
+  }
+}
+
 // Also serves routes Google should not index (kept in this same function
 // because the Vercel Hobby plan allows at most 12 functions per deployment):
 //   mode=notfound -> any URL the site does not have: real 404 + noindex.
@@ -277,6 +392,10 @@ async function serveShell(req: VercelRequest, res: VercelResponse, mode: string)
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mode = String(req.query.mode || '');
+  if (mode === 'sitemap') {
+    await serveSitemap(res);
+    return;
+  }
   if (mode === 'notfound' || mode === 'private') {
     await serveShell(req, res, mode);
     return;

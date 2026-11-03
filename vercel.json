@@ -52,6 +52,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/seo/product?mode=sitemap"
+    },
+    {
       "source": "/product/:handle",
       "destination": "/api/seo/product?handle=:handle"
     },
