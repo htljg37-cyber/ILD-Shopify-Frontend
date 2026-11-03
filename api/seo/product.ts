@@ -371,6 +371,80 @@ async function serveSitemap(res: VercelResponse) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// /feeds/google-supplemental.tsv (mode=gmcfeed). A supplemental data source
+// for Google Merchant Center: Google & YouTube sends the SEO title and SEO
+// description, so this feed replaces them with the product's real title and
+// full description, sets the real manufacturer as brand, and adds gender and
+// age group to apparel. Merchant Center fetches it once a day, so new
+// products are picked up without editing anything by hand.
+
+const FEED_QUERY = `
+  query FeedPage($cursor: String) {
+    products(first: 100, after: $cursor) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        id
+        title
+        vendor
+        productType
+        tags
+        description
+        variants(first: 100) { nodes { id title } }
+      }
+    }
+  }
+`;
+
+function numericId(gid: string) {
+  return gid.split('/').pop() || '';
+}
+
+function feedText(value: string) {
+  return value.replace(/[\t\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+}
+
+function isApparel(product: any) {
+  return product.productType === 'Apparel & Streetwear' || product.vendor === 'Printify';
+}
+
+async function serveGmcFeed(res: VercelResponse) {
+  try {
+    const lines = [['id', 'title', 'description', 'brand', 'gender', 'age_group'].join('\t')];
+    let cursor: string | null = null;
+    for (let page = 0; page < 50; page += 1) {
+      const data = await storefront(FEED_QUERY, { cursor });
+      for (const product of data.products.nodes) {
+        const productId = numericId(product.id);
+        const description = feedText(product.description || product.title).slice(0, 5000);
+        const apparel = isApparel(product);
+        for (const variant of product.variants.nodes) {
+          const variantTitle = variant.title && variant.title !== 'Default Title' ? ` - ${variant.title}` : '';
+          lines.push(
+            [
+              `shopify_ZZ_${productId}_${numericId(variant.id)}`,
+              feedText(`${product.title}${variantTitle}`).slice(0, 150),
+              description,
+              feedText(getBrand(product)),
+              apparel ? 'unisex' : '',
+              apparel ? 'adult' : '',
+            ].join('\t')
+          );
+        }
+      }
+      if (!data.products.pageInfo.hasNextPage) break;
+      cursor = data.products.pageInfo.endCursor;
+    }
+    res.setHeader('Content-Type', 'text/tab-separated-values; charset=utf-8');
+    res.setHeader('X-Robots-Tag', 'noindex');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    res.status(200).send(`${lines.join('\n')}\n`);
+  } catch {
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(503).send('Feed temporarily unavailable');
+  }
+}
+
 // Also serves routes Google should not index (kept in this same function
 // because the Vercel Hobby plan allows at most 12 functions per deployment):
 //   mode=notfound -> any URL the site does not have: real 404 + noindex.
@@ -394,6 +468,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mode = String(req.query.mode || '');
   if (mode === 'sitemap') {
     await serveSitemap(res);
+    return;
+  }
+  if (mode === 'gmcfeed') {
+    await serveGmcFeed(res);
     return;
   }
   if (mode === 'notfound' || mode === 'private') {

@@ -52,6 +52,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/feeds/google-supplemental.tsv",
+      "destination": "/api/seo/product?mode=gmcfeed"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/seo/product?mode=sitemap"
     },
