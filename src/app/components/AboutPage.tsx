@@ -1,4 +1,3 @@
-import {motion} from 'motion/react';
 import {ArrowRight, BadgeCheck, Flower2, Mail, Package, ShieldCheck, Users} from 'lucide-react';
 import {PageHero} from './PageHero';
 import {CustomerReviews} from './CustomerReviews';
@@ -36,12 +35,7 @@ export function AboutPage() {
       />
 
       <section className="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-10 px-4 py-14 sm:px-6 md:py-20 lg:grid-cols-2 lg:items-center lg:px-10">
-        <motion.div
-          initial={{opacity: 0, y: 16}}
-          whileInView={{opacity: 1, y: 0}}
-          viewport={{once: true}}
-          transition={{duration: 0.45}}
-        >
+        <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/85 px-4 py-2 shadow-sm">
             <Users className="h-4 w-4 text-[#C8A45D]" />
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">Our Story</span>
@@ -67,14 +61,9 @@ export function AboutPage() {
               where we are a Top Rated Seller.
             </p>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{opacity: 0, y: 16}}
-          whileInView={{opacity: 1, y: 0}}
-          viewport={{once: true}}
-          transition={{duration: 0.45, delay: 0.08}}
-          className="grid grid-cols-5 gap-4"
+        <div className="grid grid-cols-5 gap-4"
         >
           <img
             src="/images/about/ild-diecast-shelf.jpg"
@@ -100,7 +89,7 @@ export function AboutPage() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       <section className="mx-auto w-full max-w-[1280px] px-4 pb-14 sm:px-6 md:pb-20 lg:px-10">

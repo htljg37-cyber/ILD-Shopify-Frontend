@@ -1,7 +1,5 @@
-import {motion} from 'motion/react';
 import {BadgeCheck, ExternalLink, MessageSquareQuote, Star} from 'lucide-react';
 import {
-  EXTERNAL_REVIEWS,
   REVIEW_SOURCES,
   REVIEW_STATS,
   reviewsForHandle,
@@ -140,15 +138,7 @@ export function CustomerReviews() {
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {reviews.map((review, index) => (
-            <motion.div
-              key={`${review.source}-${review.author}-${index}`}
-              initial={{opacity: 0, y: 16}}
-              whileInView={{opacity: 1, y: 0}}
-              viewport={{once: true, margin: '-60px'}}
-              transition={{delay: Math.min(index, 8) * 0.04, duration: 0.35}}
-            >
-              <ReviewCard review={review} />
-            </motion.div>
+            <ReviewCard key={`${review.source}-${review.author}-${index}`} review={review} />
           ))}
         </div>
       </div>
@@ -187,4 +177,3 @@ export function ProductReviews({handle}: {handle: string}) {
   );
 }
 
-export const TOTAL_EXTERNAL_REVIEWS = EXTERNAL_REVIEWS.length;
