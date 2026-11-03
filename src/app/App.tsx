@@ -192,6 +192,21 @@ export default function App() {
     [clearTimer]
   );
 
+  // One canonical URL per page, always on www and without filter query
+  // strings, so Google does not treat /catalog?brand=... or the bare domain as
+  // separate pages. Product pages already get this tag from the server; this
+  // keeps it correct after client-side navigation too.
+  useEffect(() => {
+    const href = `https://www.ildistributions.com${path === '/' ? '/' : path.replace(/\/$/, '')}`;
+    let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'canonical';
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [path]);
+
   useEffect(() => {
     function handlePopState() {
       setPath(window.location.pathname);
