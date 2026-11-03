@@ -27,8 +27,8 @@ const contactDetails = [
   },
   {
     icon: Clock,
-    title: 'Business Hours',
-    text: 'Monday – Friday: 9 AM – 6 PM PST',
+    title: 'Response Time',
+    text: 'We are an online store. We usually reply within 24 hours, every day.',
   },
 ];
 

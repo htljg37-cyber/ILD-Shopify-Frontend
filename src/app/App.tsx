@@ -26,6 +26,8 @@ import { ReturnsPolicyPage } from './components/ReturnsPolicyPage';
 import { AccountPage } from './components/AccountPage';
 import { WishlistPage } from './components/WishlistPage';
 import OrdersPage from './components/OrdersPage';
+import { AboutPage } from './components/AboutPage';
+import { CustomerReviews } from './components/CustomerReviews';
 
 const revealSection = {
   initial: { opacity: 0, y: 32, filter: 'blur(6px)' },
@@ -84,6 +86,10 @@ function HomePage() {
       <motion.div {...revealSection}>
         <WhyShopSection />
       </motion.div>
+
+      <motion.div {...revealSection}>
+        <CustomerReviews />
+      </motion.div>
     </>
   );
 }
@@ -139,6 +145,8 @@ function PageRoute({
   if (path === '/track-order') {
     return <TrackOrderPage />;
   }
+
+  if (path === '/about') return <AboutPage />;
 
   if (path === '/contact') {
     return <ContactPage />;
