@@ -28,6 +28,7 @@ import { WishlistPage } from './components/WishlistPage';
 import OrdersPage from './components/OrdersPage';
 import { AboutPage } from './components/AboutPage';
 import { CustomerReviews } from './components/CustomerReviews';
+import { metaForPath } from '../lib/pageMeta';
 
 const revealSection = {
   initial: { opacity: 0, y: 32, filter: 'blur(6px)' },
@@ -213,6 +214,15 @@ export default function App() {
       document.head.appendChild(link);
     }
     link.href = href;
+
+    // Product pages set their own title once the product loads.
+    if (!path.startsWith('/product/')) {
+      const meta = metaForPath(path);
+      document.title = meta.title;
+      document
+        .querySelector('meta[name="description"]')
+        ?.setAttribute('content', meta.description);
+    }
   }, [path]);
 
   useEffect(() => {

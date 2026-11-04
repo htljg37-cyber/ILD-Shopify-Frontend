@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { PAGE_META } from '../../src/lib/pageMeta';
 
 // Serves /product/:handle with the product's own <title>, meta description,
 // Open Graph/Twitter tags, canonical URL and Product structured data already
@@ -446,6 +447,35 @@ async function serveGmcFeed(res: VercelResponse) {
   }
 }
 
+// mode=page -> fixed pages such as /about or /catalog: the app shell with that
+// page's own title, description, Open Graph tags and canonical URL.
+async function servePage(req: VercelRequest, res: VercelResponse, page: string) {
+  let html: string;
+  try {
+    html = await loadIndexHtml(req);
+  } catch {
+    res.status(500).send('Unable to load page');
+    return;
+  }
+  const meta = PAGE_META[page];
+  if (meta) {
+    const t = escapeHtml(meta.title);
+    const d = escapeHtml(meta.description);
+    const u = escapeHtml(`${SITE_URL}/${page}`);
+    html = replaceTag(html, /<title>[\s\S]*?<\/title>/, `<title>${t}</title>`);
+    html = replaceTag(html, /<meta\s+name="description"[\s\S]*?\/>/, `<meta name="description" content="${d}" />`);
+    html = replaceTag(html, /<meta\s+property="og:title"[\s\S]*?\/>/, `<meta property="og:title" content="${t}" />`);
+    html = replaceTag(html, /<meta\s+property="og:description"[\s\S]*?\/>/, `<meta property="og:description" content="${d}" />`);
+    html = replaceTag(html, /<meta\s+property="og:url"[\s\S]*?\/>/, `<meta property="og:url" content="${u}" />`);
+    html = replaceTag(html, /<meta\s+name="twitter:title"[\s\S]*?\/>/, `<meta name="twitter:title" content="${t}" />`);
+    html = replaceTag(html, /<meta\s+name="twitter:description"[\s\S]*?\/>/, `<meta name="twitter:description" content="${d}" />`);
+    html = html.replace('</head>', `    <link rel="canonical" href="${u}" />\n  </head>`);
+  }
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+  res.status(200).send(html);
+}
+
 // Also serves routes Google should not index (kept in this same function
 // because the Vercel Hobby plan allows at most 12 functions per deployment):
 //   mode=notfound -> any URL the site does not have: real 404 + noindex.
@@ -473,6 +503,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (mode === 'gmcfeed') {
     await serveGmcFeed(res);
+    return;
+  }
+  if (mode === 'page') {
+    await servePage(req, res, String(req.query.page || '').replace(/[^a-z-]/g, ''));
     return;
   }
   if (mode === 'notfound' || mode === 'private') {
