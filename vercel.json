@@ -72,8 +72,8 @@
       "destination": "/index.html"
     },
     {
-      "source": "/(catalog|new-arrivals|collections|brands|about|contact|privacy-policy|terms-of-service|shipping-policy|returns-policy)",
-      "destination": "/index.html"
+      "source": "/:page(catalog|new-arrivals|collections|brands|about|contact|privacy-policy|terms-of-service|shipping-policy|returns-policy)",
+      "destination": "/api/seo/product?mode=page&page=:page"
     },
     {
       "source": "/collections/:handle",
