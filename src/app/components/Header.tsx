@@ -55,6 +55,7 @@ const primaryNavItems = [
   ['Collections', '/collections'],
   ['Brands', '/brands'],
   ['Track Order', '/track-order'],
+  ['About', '/about'],
   ['Contact', '/contact'],
 ];
 

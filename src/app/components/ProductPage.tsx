@@ -42,6 +42,7 @@ import {getShippingLabel} from '../../lib/shipping';
 import {ProductDescription} from './ProductDescription';
 
 import {RelatedProducts} from './RelatedProducts';
+import {ProductReviews} from './CustomerReviews';
 
 import {
 
@@ -2498,6 +2499,11 @@ export function ProductPage({
         </div>
 
       </section>
+
+
+
+      <ProductReviews handle={product.handle} />
+
 
 
 

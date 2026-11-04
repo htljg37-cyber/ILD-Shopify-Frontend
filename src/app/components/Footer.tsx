@@ -17,6 +17,7 @@ const shopLinks = [
 ];
 
 const serviceLinks = [
+  ['About Us', '/about'],
   ['Contact', '/contact'],
   ['Track Order', '/track-order'],
   ['Shipping Policy', '/shipping-policy'],

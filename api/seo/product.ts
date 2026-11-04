@@ -270,6 +270,7 @@ const STATIC_PATHS = [
   '/new-arrivals',
   '/collections',
   '/brands',
+  '/about',
   '/contact',
   '/shipping-policy',
   '/returns-policy',
