@@ -77,7 +77,7 @@
     },
     {
       "source": "/collections/:handle",
-      "destination": "/index.html"
+      "destination": "/api/seo/product?mode=collection&handle=:handle"
     },
     {
       "source": "/(.*)",

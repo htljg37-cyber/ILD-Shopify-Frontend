@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { CatalogPage } from './CatalogPage';
+import { getCollectionSeo } from '../../lib/shopify';
 
 function formatCollectionTitle(handle: string) {
   return handle
@@ -30,12 +32,38 @@ function CollectionLoadingState() {
 }
 
 export function CollectionProducts({ handle }: { handle: string }) {
+  const [collectionTitle, setCollectionTitle] = useState<string | null>(null);
+
+  // Same title and description the server writes for Google, so the browser
+  // tab does not keep the home page title on collection pages.
+  useEffect(() => {
+    let cancelled = false;
+    setCollectionTitle(null);
+    getCollectionSeo(handle)
+      .then((collection: any) => {
+        if (cancelled || !collection) return;
+        setCollectionTitle(collection.title);
+        document.title = collection.seo?.title || `${collection.title} | ILD`;
+        const description =
+          collection.seo?.description ||
+          collection.description ||
+          `Shop ${collection.title} at IL Distributions. Brand new collectibles shipped with tracking.`;
+        document
+          .querySelector('meta[name="description"]')
+          ?.setAttribute('content', description.replace(/\s+/g, ' ').trim().slice(0, 160));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [handle]);
+
   return (
     <CatalogPage
       key={handle}
       collectionHandle={handle}
       indexLoadingFallback={<CollectionLoadingState />}
-      title={formatCollectionTitle(handle)}
+      title={collectionTitle || formatCollectionTitle(handle)}
       description="Browse and filter products available in this collection."
       headerVariant="collection"
     />
