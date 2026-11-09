@@ -84,6 +84,22 @@ async function loadIndexHtml(req: VercelRequest) {
   return html;
 }
 
+// The app shell (index.html) carries the home page canonical. Every other
+// page must replace it with its own URL, or Google reads it as a duplicate
+// of the home page.
+const CANONICAL_RE = /<link\s+rel="canonical"[^>]*>/;
+
+function setCanonical(html: string, url: string) {
+  const tag = `<link rel="canonical" href="${url}" />`;
+  return CANONICAL_RE.test(html)
+    ? html.replace(CANONICAL_RE, tag)
+    : html.replace('</head>', `    ${tag}\n  </head>`);
+}
+
+function removeCanonical(html: string) {
+  return html.replace(CANONICAL_RE, '');
+}
+
 function addNoindex(html: string) {
   if (html.includes('name="robots"')) return html;
   return html.replace('</head>', '    <meta name="robots" content="noindex" />\n  </head>');
@@ -250,8 +266,9 @@ function injectSeo(html: string, product: any, url: string) {
       : undefined,
   };
 
+  out = setCanonical(out, u);
+
   const extraHead = [
-    `<link rel="canonical" href="${u}" />`,
     `<meta property="product:price:amount" content="${price ? escapeHtml(String(price.amount)) : ''}" />`,
     `<meta property="product:price:currency" content="${price ? escapeHtml(price.currencyCode) : ''}" />`,
     `<script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g, '\\u003c')}</script>`,
@@ -519,9 +536,81 @@ async function servePage(req: VercelRequest, res: VercelResponse, page: string) 
     html = replaceTag(html, /<meta\s+property="og:url"[\s\S]*?\/>/, `<meta property="og:url" content="${u}" />`);
     html = replaceTag(html, /<meta\s+name="twitter:title"[\s\S]*?\/>/, `<meta name="twitter:title" content="${t}" />`);
     html = replaceTag(html, /<meta\s+name="twitter:description"[\s\S]*?\/>/, `<meta name="twitter:description" content="${d}" />`);
-    html = html.replace('</head>', `    <link rel="canonical" href="${u}" />\n  </head>`);
+    html = setCanonical(html, u);
   }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+  res.status(200).send(html);
+}
+
+// mode=collection -> /collections/:handle with the collection's own title,
+// description and canonical URL. Before this, every collection page was
+// served as the bare home page shell (same title, no canonical), so Google
+// reported them as duplicates. A collection Shopify does not have gets a
+// real 404 instead of an empty page ("soft 404").
+const COLLECTION_SEO_QUERY = `
+  query CollectionSeo($handle: String!) {
+    collection(handle: $handle) {
+      title
+      handle
+      description
+      seo { title description }
+      image { url }
+    }
+  }
+`;
+
+async function serveCollection(req: VercelRequest, res: VercelResponse, handle: string) {
+  let html: string;
+  try {
+    html = await loadIndexHtml(req);
+  } catch {
+    res.status(500).send('Unable to load page');
+    return;
+  }
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+
+  let collection: any;
+  try {
+    collection = handle ? (await storefront(COLLECTION_SEO_QUERY, { handle })).collection : null;
+  } catch {
+    // Shopify could not be reached: serve the page so visitors still get it.
+    res.setHeader('Cache-Control', 'public, s-maxage=60');
+    res.status(200).send(setCanonical(html, escapeHtml(`${SITE_URL}/collections/${handle}`)));
+    return;
+  }
+
+  if (!collection) {
+    res.setHeader('X-Robots-Tag', 'noindex');
+    res.setHeader('Cache-Control', 'public, s-maxage=300');
+    res.status(404).send(addNoindex(removeCanonical(html)));
+    return;
+  }
+
+  const t = escapeHtml(collection.seo?.title || `${collection.title} | ILD`);
+  const d = escapeHtml(
+    truncate(
+      collection.seo?.description ||
+        collection.description ||
+        `Shop ${collection.title} at IL Distributions. Brand new collectibles shipped with tracking.`,
+      160
+    )
+  );
+  const u = escapeHtml(`${SITE_URL}/collections/${collection.handle}`);
+  html = replaceTag(html, /<title>[\s\S]*?<\/title>/, `<title>${t}</title>`);
+  html = replaceTag(html, /<meta\s+name="description"[\s\S]*?\/>/, `<meta name="description" content="${d}" />`);
+  html = replaceTag(html, /<meta\s+property="og:title"[\s\S]*?\/>/, `<meta property="og:title" content="${t}" />`);
+  html = replaceTag(html, /<meta\s+property="og:description"[\s\S]*?\/>/, `<meta property="og:description" content="${d}" />`);
+  html = replaceTag(html, /<meta\s+property="og:url"[\s\S]*?\/>/, `<meta property="og:url" content="${u}" />`);
+  html = replaceTag(html, /<meta\s+name="twitter:title"[\s\S]*?\/>/, `<meta name="twitter:title" content="${t}" />`);
+  html = replaceTag(html, /<meta\s+name="twitter:description"[\s\S]*?\/>/, `<meta name="twitter:description" content="${d}" />`);
+  if (collection.image?.url) {
+    const img = escapeHtml(collection.image.url);
+    html = replaceTag(html, /<meta\s+property="og:image"[\s\S]*?\/>/, `<meta property="og:image" content="${img}" />`);
+    html = replaceTag(html, /<meta\s+name="twitter:image"[\s\S]*?\/>/, `<meta name="twitter:image" content="${img}" />`);
+  }
+  html = setCanonical(html, u);
+
   res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
   res.status(200).send(html);
 }
@@ -542,7 +631,7 @@ async function serveShell(req: VercelRequest, res: VercelResponse, mode: string)
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('X-Robots-Tag', 'noindex');
   res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
-  res.status(mode === 'private' ? 200 : 404).send(addNoindex(html));
+  res.status(mode === 'private' ? 200 : 404).send(addNoindex(removeCanonical(html)));
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -557,6 +646,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (mode === 'page') {
     await servePage(req, res, String(req.query.page || '').replace(/[^a-z-]/g, ''));
+    return;
+  }
+  if (mode === 'collection') {
+    await serveCollection(req, res, String(req.query.handle || '').replace(/[^a-z0-9-]/gi, ''));
     return;
   }
   if (mode === 'notfound' || mode === 'private') {
@@ -587,7 +680,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // The product does not exist (deleted, renamed or mistyped URL): answer
       // with a real 404 so Google drops it instead of reporting a "soft 404".
       status = 404;
-      html = addNoindex(html);
+      html = addNoindex(removeCanonical(html));
       res.setHeader('Cache-Control', 'public, s-maxage=300');
     }
   } catch {

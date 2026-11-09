@@ -3574,3 +3574,16 @@ export async function getCollectionCatalogIndex(handle) {
 
 
 }
+
+// Title and SEO fields of one collection, used to set the browser title and
+// meta description on /collections/:handle (the server sets the same values
+// in api/seo/product.ts).
+export async function getCollectionSeo(handle) {
+  const data = await shopifyFetch(
+    `query CollectionSeo($handle: String!) {
+      collection(handle: $handle) { title description seo { title description } }
+    }`,
+    {handle}
+  );
+  return data?.collection || null;
+}

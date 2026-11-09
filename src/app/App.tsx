@@ -215,8 +215,8 @@ export default function App() {
     }
     link.href = href;
 
-    // Product pages set their own title once the product loads.
-    if (!path.startsWith('/product/')) {
+    // Product and collection pages set their own title once their data loads.
+    if (!path.startsWith('/product/') && !path.startsWith('/collections/')) {
       const meta = metaForPath(path);
       document.title = meta.title;
       document
