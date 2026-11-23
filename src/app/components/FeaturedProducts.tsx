@@ -230,7 +230,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
     <article
 
-      className={`group relative overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white shadow-[0_8px_20px_rgba(17,17,17,0.05)] [content-visibility:auto] [contain-intrinsic-size:560px] ${
+      className={`group relative overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-[0_4px_14px_rgba(17,17,17,0.04)] sm:rounded-3xl sm:shadow-[0_8px_20px_rgba(17,17,17,0.05)] [content-visibility:auto] [contain-intrinsic-size:560px] ${
 
         isOutOfStock ? 'opacity-80' : ''
 
@@ -302,7 +302,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
         {isOutOfStock ? (
 
-          <span className="absolute left-4 right-4 top-4 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.16em] text-white">
+          <span className="absolute left-2 right-2 top-2 rounded-full bg-[#111111] px-2 py-1 text-center text-[10px] font-extrabold uppercase tracking-[0.12em] text-white sm:left-4 sm:right-4 sm:top-4 sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.16em]">
 
             Out of Stock
 
@@ -310,7 +310,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
         ) : categoryLabel ? (
 
-          <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-[#0F5A46] px-3 py-1.5 text-xs font-bold text-white shadow-[0_6px_14px_rgba(15,90,70,0.18)]">
+          <span className="absolute left-4 top-4 hidden items-center gap-1.5 rounded-full bg-[#0F5A46] sm:flex px-3 py-1.5 text-xs font-bold text-white shadow-[0_6px_14px_rgba(15,90,70,0.18)]">
 
             <Star className="h-3.5 w-3.5 fill-[#C8A45D] text-[#C8A45D]" />
 
@@ -324,7 +324,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
         {hasCompareAtPrice && !isOutOfStock && (
 
-          <span className="absolute right-4 top-4 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-white">
+          <span className="absolute left-2 top-2 rounded-full bg-[#C8A45D] px-2 py-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-white sm:left-auto sm:right-4 sm:top-4 sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.12em]">
 
             Save {discountPercent}%
 
@@ -334,7 +334,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
 
 
-        <div className="absolute inset-x-4 bottom-4 opacity-100 transition-opacity duration-200 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100">
+        <div className="absolute bottom-2 right-2 opacity-100 transition-opacity sm:inset-x-4 sm:bottom-4 sm:right-auto duration-200 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100">
 
           <button
 
@@ -344,7 +344,8 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
             disabled={isAdding || isOutOfStock}
 
-            className={`flex h-10 w-full items-center justify-center rounded-xl text-sm font-bold text-white shadow-[0_6px_14px_rgba(15,90,70,0.18)] ${
+            aria-label={isOutOfStock ? 'Out of stock' : `Quick add ${product.title} to cart`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white shadow-[0_6px_14px_rgba(15,90,70,0.25)] sm:h-10 sm:w-full sm:rounded-xl ${
 
               isOutOfStock
 
@@ -362,15 +363,15 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
             {isAdded ? (
 
-              <CheckCircle2 className="mr-2 h-4 w-4" />
+              <CheckCircle2 className="h-4 w-4 sm:mr-2" />
 
             ) : (
 
-              <ShoppingCart className="mr-2 h-4 w-4" />
+              <ShoppingCart className="h-4 w-4 sm:mr-2" />
 
             )}
 
-            {isOutOfStock
+            <span className="hidden sm:inline">{isOutOfStock
 
               ? 'Out of Stock'
 
@@ -382,7 +383,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
                   ? 'Added'
 
-                  : 'Quick Add'}
+                  : 'Quick Add'}</span>
 
           </button>
 
@@ -392,11 +393,11 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
 
 
-      <div className="p-5">
+      <div className="p-2.5 sm:p-5">
 
         <a href={`/product/${product.handle}`}>
 
-          <h3 className="mb-3 line-clamp-2 text-base font-bold tracking-tight text-[#111111] transition-colors hover:text-[#0F5A46] md:text-lg">
+          <h3 className="mb-1 line-clamp-2 text-[13px] font-semibold leading-snug tracking-tight text-[#111111] transition-colors hover:text-[#0F5A46] sm:mb-3 sm:text-base sm:font-bold md:text-lg">
 
             {product.title}
 
@@ -406,9 +407,9 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
 
 
-        <div className="mb-3 flex flex-wrap items-end gap-2">
+        <div className="flex flex-wrap items-baseline gap-x-1.5 sm:mb-3 sm:gap-2">
 
-          <span className="text-2xl font-extrabold text-[#111111]">
+          <span className="text-sm font-extrabold text-[#111111] sm:text-2xl">
 
             ${price.toFixed(2)}
 
@@ -416,7 +417,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
           {hasCompareAtPrice && (
 
-            <span className="text-sm font-bold text-[#9CA3AF] line-through">
+            <span className="text-xs font-semibold text-[#9CA3AF] line-through sm:text-sm sm:font-bold">
 
               ${compareAtPrice.toFixed(2)}
 
@@ -428,7 +429,7 @@ const FeaturedProductCard = memo(function FeaturedProductCard({
 
 
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="hidden items-center justify-between gap-3 sm:flex">
 
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E7F0EB] px-3 py-1 text-xs font-bold text-[#0F5A46]">
 
@@ -466,7 +467,7 @@ const PreviewCard = memo(function PreviewCard({product}: {product: any}) {
 
   return (
 
-    <div className="overflow-hidden rounded-3xl border border-[#EAE7DF] bg-white shadow-[0_6px_16px_rgba(17,17,17,0.035)] [content-visibility:auto] [contain-intrinsic-size:260px]">
+    <div className="overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white shadow-[0_6px_16px_rgba(17,17,17,0.035)] sm:rounded-3xl [content-visibility:auto] [contain-intrinsic-size:260px]">
 
       <div className="aspect-square overflow-hidden bg-[#F8F7F4]">
 
@@ -846,11 +847,11 @@ export function FeaturedProducts() {
 
     <section className="performance-section relative overflow-hidden bg-[#F7F5F0] pb-6 pt-8 md:pb-8 md:pt-10 [content-visibility:auto] [contain-intrinsic-size:1500px]">
 
-      <div className="container relative z-10 mx-auto px-4 md:px-6">
+      <div className="container relative z-10 mx-auto px-3 sm:px-4 md:px-6">
 
-        <div className="mb-12">
+        <div className="mb-5 md:mb-12">
 
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2 shadow-sm">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-3 py-1.5 shadow-sm md:mb-4 md:px-4 md:py-2">
 
             <Sparkles className="h-4 w-4 text-[#C8A45D]" />
 
@@ -864,7 +865,7 @@ export function FeaturedProducts() {
 
 
 
-          <h2 className="mb-3 text-3xl font-bold tracking-tight text-[#111111] md:text-5xl">
+          <h2 className="mb-2 text-[1.75rem] font-bold leading-tight tracking-tight text-[#111111] md:mb-3 md:text-5xl">
 
             Catalog
 
@@ -872,7 +873,7 @@ export function FeaturedProducts() {
 
 
 
-          <p className="max-w-xl text-[#717182]">
+          <p className="max-w-xl text-sm text-[#717182] md:text-base">
 
             Discover products currently available for collectors, enthusiasts,
 
@@ -904,7 +905,7 @@ export function FeaturedProducts() {
 
         {loading ? (
 
-          <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-7">
 
             {Array.from({length: 4}).map((_, index) => (
 
@@ -912,7 +913,7 @@ export function FeaturedProducts() {
 
                 key={index}
 
-                className="h-[520px] rounded-3xl bg-[#E7E5DF]"
+                className="h-[250px] rounded-2xl bg-[#E7E5DF] sm:h-[520px] sm:rounded-3xl"
 
               />
 
@@ -932,7 +933,7 @@ export function FeaturedProducts() {
 
           <>
 
-            <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-7">
 
               {mainProducts.map((product, index) => (
 
@@ -962,9 +963,9 @@ export function FeaturedProducts() {
 
             {previewProducts.length > 0 && (
 
-              <div className="relative mt-8 h-64 overflow-hidden rounded-[2rem] [content-visibility:auto] [contain-intrinsic-size:256px]">
+              <div className="relative mt-5 h-48 overflow-hidden rounded-[2rem] sm:mt-8 sm:h-64 [content-visibility:auto] [contain-intrinsic-size:256px]">
 
-                <div className="pointer-events-none grid grid-cols-1 gap-7 opacity-40 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="pointer-events-none grid grid-cols-2 gap-3 opacity-40 sm:gap-5 lg:grid-cols-4 lg:gap-7">
 
                   {previewProducts.map((product) => (
 
@@ -986,7 +987,7 @@ export function FeaturedProducts() {
 
                     href="/catalog"
 
-                    className="inline-flex items-center rounded-2xl bg-[#0F5A46] px-7 py-4 text-base font-bold text-white shadow-[0_10px_22px_rgba(15,90,70,0.2)] transition-colors hover:bg-[#126B54]"
+                    className="inline-flex items-center rounded-2xl bg-[#0F5A46] px-6 py-3.5 text-sm font-bold text-white sm:px-7 sm:py-4 sm:text-base shadow-[0_10px_22px_rgba(15,90,70,0.2)] transition-colors hover:bg-[#126B54]"
 
                   >
 

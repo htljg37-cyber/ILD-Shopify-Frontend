@@ -281,7 +281,7 @@ export function CategoryCards() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#07110E] pb-12 pt-8 md:pb-10 md:pt-8 [content-visibility:auto] [contain-intrinsic-size:720px]"
+      className="relative overflow-hidden bg-[#07110E] pb-8 pt-6 md:pb-10 md:pt-8 [content-visibility:auto] [contain-intrinsic-size:720px]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -295,9 +295,9 @@ export function CategoryCards() {
       <div className="pointer-events-none absolute -left-20 top-36 h-72 w-72 rounded-full border border-[#C8A45D]/10" />
       <div className="pointer-events-none absolute -left-8 top-48 h-48 w-48 rounded-full border border-[#C8A45D]/10" />
 
-      <div className="container relative z-10 mx-auto px-4 md:px-6">
+      <div className="container relative z-10 mx-auto px-3 sm:px-4 md:px-6">
         <div className="mx-auto mb-5 max-w-6xl md:mb-4">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-5">
             <div>
               <motion.div
                 initial={{opacity: 0, y: 14}}
@@ -315,7 +315,7 @@ export function CategoryCards() {
                 initial={{opacity: 0, y: 16}}
                 whileInView={{opacity: 1, y: 0}}
                 viewport={{once: true}}
-                className="mb-2 text-3xl font-extrabold tracking-[-0.04em] text-white sm:text-4xl md:text-5xl"
+                className="mb-1.5 text-[1.75rem] font-extrabold leading-tight tracking-[-0.04em] text-white sm:text-4xl md:mb-2 md:text-5xl"
               >
                 Shop by Category
               </motion.h2>
@@ -356,7 +356,7 @@ export function CategoryCards() {
               dragElastic={0.12}
               onDragStart={() => setIsPaused(true)}
               onDragEnd={handleDragEnd}
-              className="relative mx-auto h-[430px] max-w-[1500px] cursor-grab select-none [perspective:1600px] active:cursor-grabbing sm:h-[470px] md:h-[455px]"
+              className="relative mx-auto h-[315px] max-w-[1500px] cursor-grab select-none [perspective:1600px] active:cursor-grabbing sm:h-[470px] md:h-[455px]"
             >
               {displayCollections.map((collection, index) => {
                 const offset = getCircularOffset(
@@ -446,7 +446,7 @@ export function CategoryCards() {
                           ? `Show ${collection.title} collection`
                           : undefined
                       }
-                      className={`relative h-[390px] overflow-hidden rounded-[1.75rem] border bg-[#111111] shadow-[0_18px_42px_rgba(0,0,0,0.38)] [transform-style:preserve-3d] sm:h-[430px] md:h-[420px] md:rounded-[2.25rem] ${
+                      className={`relative h-[290px] overflow-hidden rounded-[1.5rem] border bg-[#111111] shadow-[0_18px_42px_rgba(0,0,0,0.38)] [transform-style:preserve-3d] sm:h-[430px] md:h-[420px] md:rounded-[2.25rem] ${
                         isActive
                           ? 'border-[#C8A45D]/55'
                           : 'cursor-pointer border-white/15'
@@ -476,7 +476,7 @@ export function CategoryCards() {
                       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(4,15,12,0.10)_35%,rgba(4,15,12,0.92)_100%)]" />
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(200,164,93,0.16),transparent_32%)]" />
 
-                      <div className="absolute inset-x-0 top-0 flex items-start justify-between p-5 md:p-7">
+                      <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4 md:p-7">
                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-[#0F5A46] text-white shadow-lg md:h-12 md:w-12">
                           <Icon className="h-5 w-5 md:h-6 md:w-6" />
                         </div>
@@ -486,16 +486,16 @@ export function CategoryCards() {
                         </span>
                       </div>
 
-                      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 md:p-8">
+                      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
                         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#E3C06B] md:text-xs">
                           ILD Collection
                         </p>
 
-                        <h3 className="mb-2 max-w-2xl text-2xl font-extrabold tracking-[-0.035em] text-white sm:text-3xl md:mb-3 md:text-4xl">
+                        <h3 className="mb-1.5 max-w-2xl text-xl font-extrabold tracking-[-0.035em] text-white sm:text-3xl md:mb-3 md:text-4xl">
                           {collection.title}
                         </h3>
 
-                        <p className="mb-5 max-w-xl line-clamp-2 text-sm leading-relaxed text-white/72 md:mb-6 md:text-base">
+                        <p className="mb-3 max-w-xl line-clamp-2 text-[13px] leading-relaxed text-white/72 sm:text-sm md:mb-6 md:text-base">
                           {description}
                         </p>
 

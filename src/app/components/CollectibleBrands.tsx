@@ -51,8 +51,8 @@ function getBrandInitials(name: string) {
 function getItemsPerPage(width: number) {
   if (width >= 1280) return 5;
   if (width >= 1024) return 4;
-  if (width >= 640) return 2;
-  return 1;
+  if (width >= 640) return 4;
+  return 6;
 }
 
 function getInitialItemsPerPage() {
@@ -207,7 +207,7 @@ export function CollectibleBrands() {
 
   return (
     <section className="performance-section relative overflow-hidden bg-[#F7F5F0] pb-6 pt-8 md:pb-8 md:pt-10">
-      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-3 sm:px-6 lg:px-10">
         <motion.div
           initial={{opacity: 0, y: 12}}
           whileInView={{opacity: 1, y: 0}}
@@ -216,21 +216,21 @@ export function CollectibleBrands() {
             duration: 0.42,
             ease: [0.22, 1, 0.36, 1] as const,
           }}
-          className="mb-9 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between"
+          className="mb-5 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between md:gap-6"
         >
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2 shadow-sm">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-3 py-1.5 shadow-sm md:mb-4 md:px-4 md:py-2">
               <Sparkles className="h-4 w-4 text-[#C8A45D]" />
               <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">
                 Collector Brands
               </span>
             </div>
 
-            <h2 className="mb-3 text-4xl font-extrabold tracking-[-0.045em] text-[#111111] md:text-5xl lg:text-6xl">
+            <h2 className="mb-2 text-[1.75rem] font-extrabold leading-tight tracking-[-0.035em] text-[#111111] md:mb-3 md:text-5xl lg:text-6xl">
               Shop by Collectible Brand
             </h2>
 
-            <p className="max-w-2xl text-base leading-relaxed text-[#717182] md:text-lg">
+            <p className="max-w-2xl text-sm leading-relaxed text-[#717182] md:text-lg">
               Explore products from the manufacturers and collectible brands
               available at ILD.
             </p>
@@ -239,7 +239,7 @@ export function CollectibleBrands() {
           <a
             href="/brands"
             onClick={(event) => navigateTo(event, '/brands')}
-            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-6 py-3.5 text-sm font-bold text-[#0F5A46] shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[#0F5A46]/30 hover:shadow-md motion-reduce:transition-none"
+            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2.5 text-sm font-bold md:px-6 md:py-3.5 text-[#0F5A46] shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[#0F5A46]/30 hover:shadow-md motion-reduce:transition-none"
           >
             View All Brands
             <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none" />
@@ -247,11 +247,11 @@ export function CollectibleBrands() {
         </motion.div>
 
         {isLoading ? (
-          <div className="grid animate-pulse grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid animate-pulse grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
             {Array.from({length: 5}).map((_, index) => (
               <div
                 key={index}
-                className="h-[310px] rounded-[2rem] border border-[#EAE7DF] bg-white/70"
+                className="h-[120px] rounded-2xl border border-[#EAE7DF] bg-white/70 sm:h-[310px] sm:rounded-[2rem]"
               />
             ))}
           </div>
@@ -263,7 +263,7 @@ export function CollectibleBrands() {
           </div>
         ) : (
           <>
-            <div className="rounded-[2.25rem] border border-white/90 bg-white/60 p-3 shadow-[0_16px_42px_rgba(17,17,17,0.05)] sm:p-5 lg:p-6">
+            <div className="rounded-[1.5rem] border border-white/90 bg-white/60 p-2 sm:rounded-[2.25rem] sm:p-3 shadow-[0_16px_42px_rgba(17,17,17,0.05)] sm:p-5 lg:p-6">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${currentPage}-${itemsPerPage}`}
@@ -274,7 +274,7 @@ export function CollectibleBrands() {
                     duration: 0.28,
                     ease: [0.22, 1, 0.36, 1] as const,
                   }}
-                  className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+                  className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
                 >
                   {visibleBrands.map((brand) => (
                     <a
@@ -286,9 +286,9 @@ export function CollectibleBrands() {
                           `/catalog?brand=${encodeURIComponent(brand.tag)}`
                         )
                       }
-                      className="group relative flex min-h-[310px] flex-col overflow-hidden rounded-[1.75rem] border border-[#E3DED3] bg-white p-5 shadow-[0_8px_24px_rgba(17,17,17,0.05)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_15px_34px_rgba(15,90,70,0.12)] motion-reduce:transition-none sm:p-6"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#E3DED3] bg-white p-2 shadow-[0_4px_14px_rgba(17,17,17,0.04)] sm:min-h-[310px] sm:rounded-[1.75rem] sm:p-5 sm:shadow-[0_8px_24px_rgba(17,17,17,0.05)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_15px_34px_rgba(15,90,70,0.12)] motion-reduce:transition-none sm:p-6"
                     >
-                      <div className="relative flex h-40 items-center justify-center rounded-[1.35rem] border border-[#EBE6DC] bg-[#FAF9F6] px-7 sm:h-44">
+                      <div className="relative flex h-16 items-center justify-center rounded-xl border border-[#EBE6DC] bg-[#FAF9F6] px-2 sm:h-44 sm:rounded-[1.35rem] sm:px-7">
                         {brand.logo?.url ? (
                           <img
                             src={getOptimizedLogoUrl(brand.logo.url, 360)}
@@ -304,26 +304,26 @@ export function CollectibleBrands() {
                             loading="lazy"
                             decoding="async"
                             draggable={false}
-                            className="h-full w-full object-contain py-5 transition-transform duration-200 group-hover:scale-[1.04] motion-reduce:transition-none"
+                            className="h-full w-full object-contain py-2 sm:py-5 transition-transform duration-200 group-hover:scale-[1.04] motion-reduce:transition-none"
                           />
                         ) : (
-                          <div className="flex h-20 w-20 items-center justify-center rounded-[1.35rem] bg-[#0F5A46] text-xl font-black tracking-tight text-white shadow-[0_11px_24px_rgba(15,90,70,0.20)] transition-transform duration-200 group-hover:scale-[1.03] motion-reduce:transition-none">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F5A46] text-sm font-black sm:h-20 sm:w-20 sm:rounded-[1.35rem] sm:text-xl tracking-tight text-white shadow-[0_11px_24px_rgba(15,90,70,0.20)] transition-transform duration-200 group-hover:scale-[1.03] motion-reduce:transition-none">
                             {getBrandInitials(brand.name)}
                           </div>
                         )}
                       </div>
 
-                      <div className="relative mt-5 flex flex-1 items-end justify-between gap-4">
+                      <div className="relative mt-2 flex flex-1 items-end justify-center gap-4 sm:mt-5 sm:justify-between">
                         <div>
-                          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#0F5A46]">
+                          <p className="mb-1.5 hidden text-[10px] font-bold uppercase tracking-[0.18em] text-[#0F5A46] sm:block">
                             Collectible Brand
                           </p>
-                          <h3 className="text-xl font-extrabold tracking-tight text-[#111111] transition-colors duration-200 group-hover:text-[#0F5A46]">
+                          <h3 className="line-clamp-1 text-center text-xs font-bold tracking-tight text-[#111111] sm:text-left sm:text-xl sm:font-extrabold transition-colors duration-200 group-hover:text-[#0F5A46]">
                             {brand.name}
                           </h3>
                         </div>
 
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0F5A46]/10 text-[#0F5A46] transition-[background-color,color] duration-200 group-hover:bg-[#0F5A46] group-hover:text-white motion-reduce:transition-none">
+                        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0F5A46]/10 sm:flex text-[#0F5A46] transition-[background-color,color] duration-200 group-hover:bg-[#0F5A46] group-hover:text-white motion-reduce:transition-none">
                           <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
                         </span>
                       </div>
@@ -334,7 +334,7 @@ export function CollectibleBrands() {
             </div>
 
             {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-3">
+              <div className="mt-4 flex items-center justify-center gap-3 sm:mt-8">
                 <button
                   type="button"
                   onClick={() => changePage(-1)}

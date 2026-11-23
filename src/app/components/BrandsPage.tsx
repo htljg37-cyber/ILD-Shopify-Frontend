@@ -70,9 +70,9 @@ const BrandCard = memo(function BrandCard({
     <a
       href={`/catalog?brand=${encodeURIComponent(brand.tag)}`}
       onClick={(event) => onNavigate(event, brand.tag)}
-      className="group relative flex min-h-[310px] flex-col overflow-hidden rounded-[1.65rem] border border-[#B9C5BE] bg-[#F7F5F0] shadow-[0_10px_26px_rgba(24,48,40,0.08)] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/55 hover:shadow-[0_18px_34px_rgba(24,48,40,0.13)] [content-visibility:auto] [contain-intrinsic-size:310px]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border sm:min-h-[310px] sm:rounded-[1.65rem] border-[#B9C5BE] bg-[#F7F5F0] shadow-[0_10px_26px_rgba(24,48,40,0.08)] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/55 hover:shadow-[0_18px_34px_rgba(24,48,40,0.13)] [content-visibility:auto] [contain-intrinsic-size:310px]"
     >
-      <div className="relative m-3 mb-0 flex h-[184px] items-center justify-center overflow-hidden rounded-[1.2rem] border border-[#D8D9D1] bg-[#FCFBF7] px-7">
+      <div className="relative m-2 mb-0 flex h-[88px] items-center justify-center overflow-hidden rounded-xl border border-[#D8D9D1] bg-[#FCFBF7] px-3 sm:m-3 sm:mb-0 sm:h-[184px] sm:rounded-[1.2rem] sm:px-7">
         <div className="pointer-events-none absolute inset-x-10 bottom-3 h-10 rounded-full bg-[#0F5A46]/[0.07] blur-xl" />
 
         {brand.logo?.url ? (
@@ -82,32 +82,32 @@ const BrandCard = memo(function BrandCard({
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
-            className="relative h-full w-full object-contain py-8 transition-transform duration-300 group-hover:scale-[1.035]"
+            className="relative h-full w-full object-contain py-3 sm:py-8 transition-transform duration-300 group-hover:scale-[1.035]"
           />
         ) : (
-          <div className="relative flex h-[76px] min-w-[76px] items-center justify-center rounded-[1.15rem] bg-[#0F5A46] px-5 text-xl font-black tracking-[-0.02em] text-white shadow-[0_12px_24px_rgba(15,90,70,0.2)]">
+          <div className="relative flex h-12 min-w-12 items-center justify-center rounded-xl bg-[#0F5A46] px-3 text-sm sm:h-[76px] sm:min-w-[76px] sm:rounded-[1.15rem] sm:px-5 sm:text-xl font-black tracking-[-0.02em] text-white shadow-[0_12px_24px_rgba(15,90,70,0.2)]">
             {getBrandInitials(brand.name)}
           </div>
         )}
       </div>
 
-      <div className="flex flex-1 items-end justify-between gap-4 px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+      <div className="flex flex-1 items-end justify-between gap-2 px-3 pb-3 pt-2.5 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-4">
         <div className="min-w-0">
-          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F5A46]">
+          <p className="mb-1.5 hidden text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F5A46] sm:block">
             Brand
           </p>
 
-          <h3 className="truncate text-xl font-extrabold tracking-[-0.02em] text-[#17251F] transition-colors duration-300 group-hover:text-[#0F5A46]">
+          <h3 className="truncate text-sm font-extrabold tracking-[-0.02em] text-[#17251F] sm:text-xl transition-colors duration-300 group-hover:text-[#0F5A46]">
             {brand.name}
           </h3>
 
-          <p className="mt-1.5 text-sm font-medium text-[#68756E]">
+          <p className="mt-0.5 text-xs font-medium text-[#68756E] sm:mt-1.5 sm:text-sm">
             {brand.productCount}{' '}
             {brand.productCount === 1 ? 'product' : 'products'}
           </p>
         </div>
 
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#DCE7E1] text-[#0F5A46] transition-[background-color,color,transform] duration-300 group-hover:translate-x-0.5 group-hover:bg-[#0F5A46] group-hover:text-white">
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#DCE7E1] sm:flex text-[#0F5A46] transition-[background-color,color,transform] duration-300 group-hover:translate-x-0.5 group-hover:bg-[#0F5A46] group-hover:text-white">
           <ArrowRight className="h-5 w-5" />
         </span>
       </div>
@@ -243,11 +243,11 @@ export function BrandsPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#CDD6CF] py-8 md:py-10">
+    <main className="relative min-h-screen overflow-hidden bg-[#CDD6CF] py-4 md:py-10">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(15,90,70,0.035)_1px,transparent_1px),linear-gradient(rgba(15,90,70,0.035)_1px,transparent_1px)] bg-[size:54px_54px]" />
 
-      <div className="relative mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
-        <header className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(112deg,#123F34_0%,#102E27_58%,#29291E_100%)] px-6 py-8 shadow-[0_18px_42px_rgba(19,46,37,0.18)] sm:px-8 md:px-10 md:py-9">
+      <div className="relative mx-auto w-full max-w-[1680px] px-3 sm:px-6 lg:px-10">
+        <header className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(112deg,#123F34_0%,#102E27_58%,#29291E_100%)] px-5 py-6 shadow-[0_18px_42px_rgba(19,46,37,0.18)] sm:px-8 md:px-10 md:py-9">
           <div className="pointer-events-none absolute -right-10 -top-24 h-64 w-64 rounded-full border border-[#C8A45D]/15" />
           <div className="pointer-events-none absolute right-8 top-6 h-28 w-44 rotate-[-5deg] rounded-[1.4rem] border border-white/[0.08] bg-white/[0.025]" />
           <div className="pointer-events-none absolute right-1 top-10 h-28 w-44 rotate-[6deg] rounded-[1.4rem] border border-[#C8A45D]/20 bg-[#C8A45D]/[0.025]" />
@@ -260,7 +260,7 @@ export function BrandsPage() {
               </span>
             </div>
 
-            <h1 className="text-3xl font-extrabold tracking-[-0.035em] text-white sm:text-4xl md:text-[2.7rem] md:leading-[1.05]">
+            <h1 className="text-2xl font-extrabold tracking-[-0.035em] text-white sm:text-4xl md:text-[2.7rem] md:leading-[1.05]">
               Find the brands you collect
             </h1>
 
@@ -282,11 +282,11 @@ export function BrandsPage() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({length: 8}).map((_, index) => (
                 <div
                   key={index}
-                  className="h-[310px] animate-pulse rounded-[1.65rem] border border-[#B9C5BE] bg-[#E5E9E4]"
+                  className="h-[150px] animate-pulse rounded-2xl sm:h-[310px] sm:rounded-[1.65rem] border border-[#B9C5BE] bg-[#E5E9E4]"
                 />
               ))}
             </div>
@@ -318,7 +318,7 @@ export function BrandsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                 {visibleBrands.map((brand, index) => (
                   <BrandCard
                     key={brand.tag}

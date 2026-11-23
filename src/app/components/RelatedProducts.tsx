@@ -74,7 +74,7 @@ const RelatedProductCard = memo(function RelatedProductCard({
   return (
     <a
       href={`/product/${product.handle}`}
-      className="group overflow-hidden rounded-3xl border border-[#D8DDD8] bg-white shadow-[0_8px_20px_rgba(17,17,17,0.05)] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_16px_32px_rgba(15,90,70,0.11)] [content-visibility:auto] [contain-intrinsic-size:440px]"
+      className="group overflow-hidden rounded-2xl border border-[#D8DDD8] bg-white sm:rounded-3xl shadow-[0_8px_20px_rgba(17,17,17,0.05)] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_16px_32px_rgba(15,90,70,0.11)] [content-visibility:auto] [contain-intrinsic-size:440px]"
     >
       <div className="aspect-square overflow-hidden bg-[#F8F7F4]">
         {product.featuredImage?.url ? (
@@ -94,16 +94,16 @@ const RelatedProductCard = memo(function RelatedProductCard({
         )}
       </div>
 
-      <div className="p-5">
-        <h3 className="mb-3 line-clamp-2 text-base font-extrabold tracking-tight text-[#111111] transition-colors group-hover:text-[#0F5A46]">
+      <div className="p-2.5 sm:p-5">
+        <h3 className="mb-1 line-clamp-2 text-[13px] font-semibold leading-snug tracking-tight text-[#111111] sm:mb-3 sm:text-base sm:font-extrabold transition-colors group-hover:text-[#0F5A46]">
           {product.title}
         </h3>
 
-        <p className="mb-3 text-2xl font-extrabold text-[#111111]">
+        <p className="text-sm font-extrabold text-[#111111] sm:mb-3 sm:text-2xl">
           ${price.toFixed(2)}
         </p>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E7F0EB] px-3 py-1 text-xs font-bold text-[#0F5A46]">
+        <span className="hidden items-center gap-1.5 rounded-full bg-[#E7F0EB] px-3 py-1 text-xs font-bold text-[#0F5A46] sm:inline-flex">
           <Truck className="h-3.5 w-3.5" />
           {shippingLabel}
         </span>
@@ -188,9 +188,9 @@ export function RelatedProducts({currentProduct}: {currentProduct: any}) {
   return (
     <section
       ref={sectionRef}
-      className="container relative z-10 mx-auto border-t border-[#D8DDD8] px-4 py-16 md:px-6 md:py-24 [content-visibility:auto] [contain-intrinsic-size:650px]"
+      className="container relative z-10 mx-auto border-t border-[#D8DDD8] px-3 py-10 sm:px-4 md:px-6 md:py-24 [content-visibility:auto] [contain-intrinsic-size:650px]"
     >
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="mb-5 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between md:gap-4">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2 shadow-sm">
             <Star className="h-4 w-4 fill-[#C8A45D] text-[#C8A45D]" />
@@ -199,7 +199,7 @@ export function RelatedProducts({currentProduct}: {currentProduct: any}) {
             </span>
           </div>
 
-          <h2 className="text-3xl font-extrabold tracking-tight text-[#111111] md:text-4xl">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#111111] md:text-4xl">
             You May Also Like
           </h2>
 
@@ -218,11 +218,11 @@ export function RelatedProducts({currentProduct}: {currentProduct: any}) {
       </div>
 
       {!shouldLoad || loading ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {Array.from({length: 4}).map((_, index) => (
             <div
               key={index}
-              className="h-[430px] rounded-3xl border border-[#D8DDD8] bg-[#E6E8E4]"
+              className="h-[240px] rounded-2xl border border-[#D8DDD8] bg-[#E6E8E4] sm:h-[430px] sm:rounded-3xl"
             />
           ))}
         </div>
@@ -238,7 +238,7 @@ export function RelatedProducts({currentProduct}: {currentProduct: any}) {
           whileInView={{opacity: 1, y: 0}}
           viewport={{once: true, margin: '-80px'}}
           transition={{duration: 0.4}}
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4"
         >
           {relatedProducts.map((product) => (
             <RelatedProductCard key={product.id} product={product} />

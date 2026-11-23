@@ -3386,7 +3386,7 @@ return (
 
 
 
-      className="group relative block overflow-hidden rounded-3xl border border-[#E5E0D6] bg-white shadow-[0_8px_24px_rgba(17,17,17,0.045)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_16px_36px_rgba(15,90,70,0.12)] motion-reduce:transition-none"
+      className="group relative block overflow-hidden rounded-2xl border border-[#E5E0D6] bg-white shadow-[0_4px_14px_rgba(17,17,17,0.04)] sm:rounded-3xl sm:shadow-[0_8px_24px_rgba(17,17,17,0.045)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_16px_36px_rgba(15,90,70,0.12)] motion-reduce:transition-none"
 
 
 
@@ -3404,7 +3404,7 @@ return (
 
       <div
 
-        className={`relative isolate h-64 overflow-hidden md:h-72 ${
+        className={`relative isolate aspect-square overflow-hidden sm:aspect-auto sm:h-64 md:h-72 ${
 
           imageFitMode === 'cover'
 
@@ -3448,7 +3448,7 @@ return (
 
             )} 720w`}
 
-            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 25vw, 50vw"
 
             alt={displayImage?.altText || product.title}
 
@@ -3496,7 +3496,7 @@ return (
 
 
 
-          <div className="absolute left-4 right-4 top-4 z-40 rounded-full bg-[#111111] px-4 py-2 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-white shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
+          <div className="absolute left-2 right-2 top-2 z-40 rounded-full bg-[#111111] px-2 py-1 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-white sm:left-4 sm:right-4 sm:top-4 sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.18em] shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
 
 
 
@@ -3528,7 +3528,7 @@ return (
 
 
 
-          <div className="absolute left-4 top-4 z-40 flex items-center gap-1.5 rounded-full bg-[#0F5A46] px-3 py-1.5 text-xs font-bold text-white shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
+          <div className="absolute left-4 top-4 z-40 hidden items-center gap-1.5 rounded-full bg-[#0F5A46] sm:flex px-3 py-1.5 text-xs font-bold text-white shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
 
 
 
@@ -3584,7 +3584,7 @@ return (
 
 
 
-          <div className="absolute right-4 top-4 z-40 rounded-full bg-[#C8A45D] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
+          <div className="absolute left-2 top-2 z-40 rounded-full bg-[#C8A45D] px-2 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-white sm:left-auto sm:right-4 sm:top-4 sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.14em] shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
 
 
 
@@ -3624,7 +3624,7 @@ return (
 
 
 
-        <div className="absolute inset-x-4 bottom-4 z-40 translate-y-0 opacity-100 transition-[transform,opacity] duration-200 md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 motion-reduce:transition-none">
+        <div className="absolute bottom-2 right-2 z-40 translate-y-0 opacity-100 sm:inset-x-4 sm:bottom-4 sm:right-auto transition-[transform,opacity] duration-200 md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 motion-reduce:transition-none">
 
 
 
@@ -3696,7 +3696,8 @@ return (
 
 
 
-            className={`w-full rounded-2xl text-white shadow-[0_8px_18px_rgba(15,90,70,0.22)] transition-colors duration-200 ${
+            aria-label={isOutOfStock ? 'Out of stock' : `Quick add ${product.title} to cart`}
+            className={`h-9 w-9 rounded-full p-0 text-white shadow-[0_6px_14px_rgba(15,90,70,0.25)] transition-colors duration-200 sm:h-10 sm:w-full sm:rounded-2xl sm:px-4 ${
 
 
 
@@ -3744,7 +3745,8 @@ return (
 
 
 
-            <ShoppingCart className="mr-2 h-4 w-4" />
+            <ShoppingCart className="h-4 w-4 sm:mr-2" />
+<span className="hidden sm:inline">
 
 
 
@@ -3784,7 +3786,7 @@ return (
 
 
 
-                : 'Quick Add'}
+                : 'Quick Add'}</span>
 
 
 
@@ -3824,7 +3826,7 @@ return (
 
 
 
-      <div className="relative p-5">
+      <div className="relative p-2.5 sm:p-5">
 
 
 
@@ -3832,7 +3834,7 @@ return (
 
 
 
-        <h3 className="mb-3 line-clamp-2 text-base font-bold tracking-tight text-[#111111] transition-colors duration-200 group-hover:text-[#0F5A46] md:text-lg">
+        <h3 className="mb-1 line-clamp-2 text-[13px] font-semibold leading-snug tracking-tight text-[#111111] transition-colors duration-200 group-hover:text-[#0F5A46] sm:mb-3 sm:text-base sm:font-bold md:text-lg">
 
 
 
@@ -3864,7 +3866,7 @@ return (
 
 
 
-        <div className="mb-3 flex flex-wrap items-end gap-2">
+        <div className="flex flex-wrap items-baseline gap-x-1.5 sm:mb-3 sm:gap-2">
 
 
 
@@ -3872,7 +3874,7 @@ return (
 
 
 
-          <p className="text-2xl font-extrabold text-[#111111]">
+          <p className="text-sm font-extrabold text-[#111111] sm:text-2xl">
 
 
 
@@ -3912,7 +3914,7 @@ return (
 
 
 
-            <p className="text-sm font-bold text-[#9CA3AF] line-through">
+            <p className="text-xs font-semibold text-[#9CA3AF] line-through sm:text-sm sm:font-bold">
 
 
 
@@ -3960,7 +3962,7 @@ return (
 
 
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="hidden items-center justify-between gap-3 sm:flex">
 
 
 
@@ -8013,7 +8015,7 @@ export function CatalogPage({
 
 
 
-        <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 md:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto w-full max-w-[1680px] px-3 sm:px-4 md:px-6 lg:px-8">
 
 
 
@@ -8125,7 +8127,7 @@ export function CatalogPage({
 
 
 
-            <div className="relative flex flex-col gap-5 px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8 md:py-6">
+            <div className="relative flex flex-col gap-4 px-4 py-4 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between md:gap-5 md:px-8 md:py-6">
 
 
 
@@ -8277,7 +8279,7 @@ export function CatalogPage({
 
 
 
-                <h1 className="text-3xl font-extrabold tracking-[-0.035em] text-white md:text-[2.5rem] md:leading-tight">
+                <h1 className="text-2xl font-extrabold tracking-[-0.035em] text-white sm:text-3xl md:text-[2.5rem] md:leading-tight">
 
 
 
@@ -8309,7 +8311,7 @@ export function CatalogPage({
 
 
 
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/65 md:text-[15px]">
+                <p className="mt-1.5 line-clamp-2 max-w-2xl text-[13px] leading-relaxed text-white/65 sm:mt-2 sm:line-clamp-none sm:text-sm md:text-[15px]">
 
 
 
@@ -8437,7 +8439,7 @@ export function CatalogPage({
 
 
 
-              <div className="flex shrink-0 flex-wrap items-end gap-3">
+              <div className="flex shrink-0 items-end gap-2 sm:gap-3">
 
 
 
@@ -8469,7 +8471,7 @@ export function CatalogPage({
 
 
 
-                  className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/15 motion-reduce:transition-none md:hidden"
+                  className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/15 motion-reduce:transition-none md:hidden"
 
 
 
@@ -8525,7 +8527,7 @@ export function CatalogPage({
 
 
 
-                <div className="relative z-[60] w-48 sm:w-52">
+                <div className="relative z-[60] flex-1 sm:w-52 sm:flex-none">
 
 
 
@@ -8533,7 +8535,7 @@ export function CatalogPage({
 
 
 
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-white/65">
+                  <p className="mb-2 hidden text-xs font-bold uppercase tracking-[0.12em] text-white/65 md:block">
 
 
 
@@ -9125,7 +9127,7 @@ export function CatalogPage({
 
 
 
-          <p className="mb-5 text-sm text-[#717182] md:hidden">
+          <p className="mb-3 text-xs font-semibold text-[#5D685F] md:hidden">
 
 
 
@@ -9293,7 +9295,7 @@ export function CatalogPage({
 
 
 
-            <div className="grid animate-pulse grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid animate-pulse grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-7">
 
 
 
@@ -9325,7 +9327,7 @@ export function CatalogPage({
 
 
 
-                  className="overflow-hidden rounded-3xl border border-[#E5E0D6] bg-white shadow-sm"
+                  className="overflow-hidden rounded-2xl border border-[#E5E0D6] bg-white shadow-sm sm:rounded-3xl"
 
 
 
@@ -9341,7 +9343,7 @@ export function CatalogPage({
 
 
 
-                  <div className="h-64 bg-[#ECE9E2] md:h-72" />
+                  <div className="aspect-square bg-[#ECE9E2] sm:aspect-auto sm:h-64 md:h-72" />
 
 
 
@@ -9349,7 +9351,7 @@ export function CatalogPage({
 
 
 
-                  <div className="space-y-4 p-5">
+                  <div className="space-y-3 p-3 sm:space-y-4 sm:p-5">
 
 
 
@@ -9485,7 +9487,7 @@ export function CatalogPage({
 
 
 
-              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-7">
 
 
 
@@ -9589,7 +9591,7 @@ export function CatalogPage({
 
 
 
-                <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:mt-12 sm:gap-2">
 
 
 
@@ -9629,7 +9631,7 @@ export function CatalogPage({
 
 
 
-                    className="rounded-2xl border border-[#EAE7DF] bg-white px-4 py-3 text-sm font-bold text-[#111111] shadow-sm transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-[#0F5A46] hover:text-white disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#111111] motion-reduce:transition-none"
+                    className="rounded-xl border border-[#EAE7DF] bg-white px-3 py-2.5 text-sm font-bold text-[#111111] shadow-sm sm:rounded-2xl sm:px-4 sm:py-3 transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-[#0F5A46] hover:text-white disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#111111] motion-reduce:transition-none"
 
 
 
@@ -9733,7 +9735,7 @@ export function CatalogPage({
 
 
 
-                        className={`h-11 w-11 rounded-2xl text-sm font-bold transition-[transform,background-color,color] duration-200 motion-reduce:transition-none ${
+                        className={`h-10 w-10 rounded-xl text-sm font-bold sm:h-11 sm:w-11 sm:rounded-2xl transition-[transform,background-color,color] duration-200 motion-reduce:transition-none ${
 
 
 
@@ -9853,7 +9855,7 @@ export function CatalogPage({
 
 
 
-                    className="rounded-2xl border border-[#EAE7DF] bg-white px-4 py-3 text-sm font-bold text-[#111111] shadow-sm transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-[#0F5A46] hover:text-white disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#111111] motion-reduce:transition-none"
+                    className="rounded-xl border border-[#EAE7DF] bg-white px-3 py-2.5 text-sm font-bold text-[#111111] shadow-sm sm:rounded-2xl sm:px-4 sm:py-3 transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-[#0F5A46] hover:text-white disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#111111] motion-reduce:transition-none"
 
 
 

@@ -47,13 +47,13 @@ export function WhyShopSection() {
 
   return (
     <section className="performance-section relative overflow-hidden bg-[#F7F5F0] pt-8 pb-6 md:pt-10 md:pb-8">
-      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
-        <div className="mb-8 max-w-3xl md:mb-10">
+      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-3 sm:px-6 lg:px-10">
+        <div className="mb-5 max-w-3xl md:mb-10">
           <motion.div
             initial={{opacity: 0, y: 12}}
             whileInView={{opacity: 1, y: 0}}
             viewport={{once: true}}
-            className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/85 px-4 py-2 shadow-sm"
+            className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/85 px-3 py-1.5 shadow-sm md:mb-4 md:px-4 md:py-2"
           >
             <Sparkles className="h-4 w-4 text-[#C8A45D]" />
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">
@@ -65,7 +65,7 @@ export function WhyShopSection() {
             initial={{opacity: 0, y: 14}}
             whileInView={{opacity: 1, y: 0}}
             viewport={{once: true}}
-            className="mb-3 text-4xl font-extrabold tracking-[-0.045em] text-[#111111] md:text-5xl"
+            className="mb-2 text-[1.75rem] font-extrabold leading-tight tracking-[-0.035em] text-[#111111] md:mb-3 md:text-5xl"
           >
             Built for Collectors
           </motion.h2>
@@ -75,14 +75,14 @@ export function WhyShopSection() {
             whileInView={{opacity: 1, y: 0}}
             viewport={{once: true}}
             transition={{delay: 0.08}}
-            className="max-w-2xl text-base leading-relaxed text-[#717182]"
+            className="max-w-2xl text-sm leading-relaxed text-[#717182] md:text-base"
           >
             A more helpful way to explore collectibles, understand their size,
             and find the right addition for your collection.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             const isGold = feature.accent === 'gold';
@@ -94,25 +94,25 @@ export function WhyShopSection() {
                 whileInView={{opacity: 1, y: 0}}
                 viewport={{once: true, margin: '-70px'}}
                 transition={{delay: index * 0.07, duration: 0.42}}
-                className="group relative h-full overflow-hidden rounded-3xl border border-[#E1DCD2] bg-white/80 p-6 shadow-[0_12px_34px_rgba(17,17,17,0.045)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_22px_55px_rgba(15,90,70,0.11)]"
+                className="group relative h-full overflow-hidden rounded-2xl border border-[#E1DCD2] bg-white/80 p-4 sm:rounded-3xl sm:p-6 shadow-[0_12px_34px_rgba(17,17,17,0.045)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_22px_55px_rgba(15,90,70,0.11)]"
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#0F5A46]/35 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                 <div
-                  className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 ${
+                  className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl sm:mb-6 sm:h-14 sm:w-14 sm:rounded-2xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 ${
                     isGold
                       ? 'bg-[#C8A45D]/14 text-[#8A6A24] shadow-[0_12px_26px_rgba(200,164,93,0.16)]'
                       : 'bg-[#0F5A46]/11 text-[#0F5A46] shadow-[0_12px_26px_rgba(15,90,70,0.14)]'
                   }`}
                 >
-                  <Icon className="h-7 w-7" />
+                  <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
                 </div>
 
-                <h3 className="mb-3 text-xl font-extrabold tracking-tight text-[#111111] transition-colors duration-300 group-hover:text-[#0F5A46]">
+                <h3 className="mb-1.5 text-[15px] font-extrabold leading-snug tracking-tight text-[#111111] sm:mb-3 sm:text-xl transition-colors duration-300 group-hover:text-[#0F5A46]">
                   {feature.title}
                 </h3>
 
-                <p className="text-sm leading-relaxed text-[#717182]">
+                <p className="text-xs leading-relaxed text-[#717182] sm:text-sm">
                   {feature.description}
                 </p>
               </motion.article>
@@ -125,7 +125,7 @@ export function WhyShopSection() {
           whileInView={{opacity: 1, y: 0}}
           viewport={{once: true, margin: '-70px'}}
           transition={{delay: 0.12}}
-          className="relative mt-8 overflow-hidden rounded-3xl bg-[#0F5A46] px-6 py-7 shadow-[0_22px_55px_rgba(15,90,70,0.18)] sm:px-8 md:flex md:items-center md:justify-between md:gap-8"
+          className="relative mt-5 overflow-hidden rounded-2xl bg-[#0F5A46] px-5 py-6 sm:mt-8 sm:rounded-3xl sm:px-6 sm:py-7 shadow-[0_22px_55px_rgba(15,90,70,0.18)] sm:px-8 md:flex md:items-center md:justify-between md:gap-8"
         >
           <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#C8A45D]/18 blur-3xl" />
           <div className="pointer-events-none absolute inset-0 opacity-[0.045] bg-[linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px)] bg-[size:38px_38px]" />
@@ -134,7 +134,7 @@ export function WhyShopSection() {
             <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#D9BE82]">
               Find your next collectible
             </p>
-            <h3 className="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+            <h3 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl md:text-3xl">
               Ready to explore the full catalog?
             </h3>
           </div>

@@ -34,7 +34,7 @@ export function TrustBar() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_50%,rgba(15,90,70,0.34),transparent_28%),radial-gradient(circle_at_92%_40%,rgba(200,164,93,0.13),transparent_26%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(255,255,255,0.20)_1px,transparent_1px)] bg-[size:80px_80px]" />
 
-      <div className="container relative mx-auto px-4 md:px-6">
+      <div className="container relative mx-auto px-2 sm:px-4 md:px-6">
         <div className="grid grid-cols-2 lg:grid-cols-4">
             {trustItems.map((item, index) => {
               const Icon = item.icon;
@@ -42,7 +42,7 @@ export function TrustBar() {
               return (
                 <div
                   key={item.title}
-                  className={`group flex min-h-[132px] flex-col items-center justify-center px-3 py-5 text-center sm:px-5 md:flex-row md:justify-start md:gap-4 md:px-6 md:text-left lg:min-h-[112px] lg:py-5 ${
+                  className={`group flex min-h-[112px] flex-col items-center justify-center px-2 py-4 sm:min-h-[132px] sm:px-3 sm:py-5 text-center sm:px-5 md:flex-row md:justify-start md:gap-4 md:px-6 md:text-left lg:min-h-[112px] lg:py-5 ${
                     index % 2 === 0
                       ? 'border-r border-white/10'
                       : ''
