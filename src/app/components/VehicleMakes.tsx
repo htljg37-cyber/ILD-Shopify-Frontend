@@ -53,7 +53,7 @@ function getItemsPerPage(width: number) {
   if (width >= 1280) return 6;
   if (width >= 1024) return 4;
   if (width >= 640) return 3;
-  return 2;
+  return 6;
 }
 
 function getInitialItemsPerPage() {
@@ -209,27 +209,27 @@ export function VehicleMakes() {
     <section className="performance-section relative overflow-hidden bg-[#F7F5F0] pb-6 pt-8 md:pb-8 md:pt-10">
       <div className="pointer-events-none absolute inset-0 opacity-[0.025] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:48px_48px]" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-3 sm:px-6 lg:px-10">
         <motion.div
           initial={{opacity: 0, y: 12}}
           whileInView={{opacity: 1, y: 0}}
           viewport={{once: true, amount: 0.2}}
           transition={{duration: 0.42, ease: [0.22, 1, 0.36, 1]}}
-          className="mb-6 flex flex-col gap-6 md:mb-8 md:flex-row md:items-end md:justify-between"
+          className="mb-5 flex flex-col gap-4 md:mb-8 md:flex-row md:items-end md:justify-between md:gap-6"
         >
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2 shadow-sm">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-3 py-1.5 shadow-sm md:mb-4 md:px-4 md:py-2">
               <Sparkles className="h-4 w-4 text-[#C8A45D]" />
               <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">
                 Vehicle Makes
               </span>
             </div>
 
-            <h2 className="mb-3 text-4xl font-extrabold tracking-[-0.02em] text-[#111111] md:text-5xl">
+            <h2 className="mb-2 text-[1.75rem] font-extrabold leading-tight tracking-[-0.02em] text-[#111111] md:mb-3 md:text-5xl">
               Shop by Vehicle Make
             </h2>
 
-            <p className="max-w-2xl text-base leading-relaxed text-[#717182] md:text-lg">
+            <p className="max-w-2xl text-sm leading-relaxed text-[#717182] md:text-lg">
               Find models inspired by the vehicle manufacturers you collect
               and admire.
             </p>
@@ -240,7 +240,7 @@ export function VehicleMakes() {
             onClick={(event) =>
               navigateToCatalog(event, '/catalog?category=category_diecast')
             }
-            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-6 py-3.5 text-sm font-bold text-[#0F5A46] shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[#0F5A46]/30 hover:shadow-md motion-reduce:transition-none"
+            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2.5 text-sm font-bold md:px-6 md:py-3.5 text-[#0F5A46] shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[#0F5A46]/30 hover:shadow-md motion-reduce:transition-none"
           >
             Explore All Vehicles
             <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none" />
@@ -248,11 +248,11 @@ export function VehicleMakes() {
         </motion.div>
 
         {isLoading ? (
-          <div className="grid animate-pulse grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="grid animate-pulse grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
             {Array.from({length: 6}).map((_, index) => (
               <div
                 key={index}
-                className="h-[220px] rounded-[1.75rem] border border-[#EAE7DF] bg-white/70"
+                className="h-[110px] rounded-2xl border border-[#EAE7DF] bg-white/70 sm:h-[220px] sm:rounded-[1.75rem]"
               />
             ))}
           </div>
@@ -266,7 +266,7 @@ export function VehicleMakes() {
           </div>
         ) : (
           <>
-            <div className="rounded-[2.25rem] border border-white/90 bg-white/60 p-3 shadow-[0_14px_38px_rgba(17,17,17,0.05)] sm:p-5">
+            <div className="rounded-[1.5rem] border border-white/90 bg-white/60 p-2 sm:rounded-[2.25rem] sm:p-3 shadow-[0_14px_38px_rgba(17,17,17,0.05)] sm:p-5">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${currentPage}-${itemsPerPage}`}
@@ -277,7 +277,7 @@ export function VehicleMakes() {
                     duration: 0.28,
                     ease: [0.22, 1, 0.36, 1],
                   }}
-                  className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+                  className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6"
                 >
                   {visibleMakes.map((make) => (
                     <a
@@ -289,9 +289,9 @@ export function VehicleMakes() {
                           `/catalog?make=${encodeURIComponent(make.tag)}`
                         )
                       }
-                      className="group relative flex min-h-[220px] flex-col overflow-hidden rounded-[1.75rem] border border-[#E3DED3] bg-white p-4 shadow-[0_8px_22px_rgba(17,17,17,0.05)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_14px_30px_rgba(15,90,70,0.12)] motion-reduce:transition-none"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#E3DED3] bg-white p-2 shadow-[0_4px_14px_rgba(17,17,17,0.04)] sm:min-h-[220px] sm:rounded-[1.75rem] sm:p-4 sm:shadow-[0_8px_22px_rgba(17,17,17,0.05)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-[#0F5A46]/25 hover:shadow-[0_14px_30px_rgba(15,90,70,0.12)] motion-reduce:transition-none"
                     >
-                      <div className="relative flex h-32 items-center justify-center rounded-[1.25rem] border border-[#EBE6DC] bg-[#FAF9F6] px-5">
+                      <div className="relative flex h-16 items-center justify-center rounded-xl border border-[#EBE6DC] bg-[#FAF9F6] px-2 sm:h-32 sm:rounded-[1.25rem] sm:px-5">
                         {make.logo?.url ? (
                           <img
                             src={getOptimizedLogoUrl(make.logo.url, 320)}
@@ -307,26 +307,26 @@ export function VehicleMakes() {
                             loading="lazy"
                             decoding="async"
                             draggable={false}
-                            className="h-full w-full object-contain py-5 transition-transform duration-200 group-hover:scale-[1.04] motion-reduce:transition-none"
+                            className="h-full w-full object-contain py-2 sm:py-5 transition-transform duration-200 group-hover:scale-[1.04] motion-reduce:transition-none"
                           />
                         ) : (
-                          <div className="flex h-16 w-16 items-center justify-center rounded-[1.15rem] bg-[#0F5A46] text-lg font-black text-white shadow-[0_10px_22px_rgba(15,90,70,0.20)] transition-transform duration-200 group-hover:scale-[1.03] motion-reduce:transition-none">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F5A46] text-sm font-black sm:h-16 sm:w-16 sm:rounded-[1.15rem] sm:text-lg text-white shadow-[0_10px_22px_rgba(15,90,70,0.20)] transition-transform duration-200 group-hover:scale-[1.03] motion-reduce:transition-none">
                             {getMakeInitials(make.name)}
                           </div>
                         )}
                       </div>
 
-                      <div className="relative mt-4 flex flex-1 items-end justify-between gap-3">
+                      <div className="relative mt-2 flex flex-1 items-end justify-center gap-3 sm:mt-4 sm:justify-between">
                         <div>
-                          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F5A46]">
+                          <p className="mb-1 hidden text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F5A46] sm:block">
                             Vehicle Make
                           </p>
-                          <h3 className="text-base font-extrabold text-[#111111] transition-colors duration-200 group-hover:text-[#0F5A46] sm:text-lg">
+                          <h3 className="line-clamp-1 text-center text-xs font-bold text-[#111111] transition-colors duration-200 group-hover:text-[#0F5A46] sm:text-left sm:text-lg sm:font-extrabold">
                             {make.name}
                           </h3>
                         </div>
 
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0F5A46]/10 text-[#0F5A46] transition-[background-color,color] duration-200 group-hover:bg-[#0F5A46] group-hover:text-white motion-reduce:transition-none">
+                        <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0F5A46]/10 sm:flex text-[#0F5A46] transition-[background-color,color] duration-200 group-hover:bg-[#0F5A46] group-hover:text-white motion-reduce:transition-none">
                           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
                         </span>
                       </div>

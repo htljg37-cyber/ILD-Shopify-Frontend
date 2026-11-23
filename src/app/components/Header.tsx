@@ -10,7 +10,16 @@ import {
   Heart,
   Package,
   LogOut,
+  LayoutGrid,
+  Sparkles,
+  Layers,
+  BadgeCheck,
+  Truck,
+  Info,
+  Mail,
+  ChevronRight,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -57,6 +66,29 @@ const primaryNavItems = [
   ['Track Order', '/track-order'],
   ['About', '/about'],
   ['Contact', '/contact'],
+];
+
+const mobileMenuSections: {
+  title: string;
+  items: { label: string; href: string; icon: LucideIcon }[];
+}[] = [
+  {
+    title: 'Shop',
+    items: [
+      { label: 'Catalog', href: '/catalog', icon: LayoutGrid },
+      { label: 'New Arrivals', href: '/new-arrivals', icon: Sparkles },
+      { label: 'Collections', href: '/collections', icon: Layers },
+      { label: 'Brands', href: '/brands', icon: BadgeCheck },
+    ],
+  },
+  {
+    title: 'Help',
+    items: [
+      { label: 'Track Order', href: '/track-order', icon: Truck },
+      { label: 'About', href: '/about', icon: Info },
+      { label: 'Contact', href: '/contact', icon: Mail },
+    ],
+  },
 ];
 
 function getNavLinkClass(isActive: boolean) {
@@ -326,8 +358,8 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-[#E7E2D8] bg-white shadow-sm">
-        <div className="relative mx-auto flex h-[78px] w-full max-w-[1680px] items-center justify-between px-4 transition-all duration-300 sm:px-6 lg:px-10">
-          <div className="z-20 flex items-center gap-5 lg:gap-8">
+        <div className="relative mx-auto flex h-[60px] w-full max-w-[1680px] items-center justify-between px-3 transition-all duration-300 sm:h-[70px] sm:px-6 md:h-[78px] lg:px-10">
+          <div className="z-20 flex items-center gap-2 sm:gap-5 lg:gap-8">
             <Button
               variant="ghost"
               size="icon"
@@ -344,7 +376,7 @@ export function Header() {
               <img
                 src="/logo.png"
                 alt="IL Distributions LLC"
-                className="h-10 sm:h-12 lg:h-14 w-auto max-w-[230px] object-contain transition-all duration-300 ease-out group-hover:scale-[1.04] group-hover:drop-shadow-[0_8px_18px_rgba(15,90,70,0.22)]"
+                className="h-9 sm:h-12 lg:h-14 w-auto max-w-[180px] sm:max-w-[230px] object-contain transition-all duration-300 ease-out group-hover:scale-[1.04] group-hover:drop-shadow-[0_8px_18px_rgba(15,90,70,0.22)]"
               />
             </a>
 
@@ -369,7 +401,7 @@ export function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
             <div className="hidden w-56 md:block min-[1500px]:w-72">
               <SearchBox
                 searchTerm={searchTerm}
@@ -530,7 +562,7 @@ export function Header() {
             />
 
             <motion.aside
-              className="relative z-[10000] h-screen w-[86%] max-w-sm overflow-y-auto border-r border-white/40 bg-white/95 p-6 text-[#111111] shadow-[24px_0_70px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+              className="relative z-[10000] flex h-[100dvh] w-[86%] max-w-sm flex-col overflow-y-auto border-r border-white/40 bg-[#FAFAF7] px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5 text-[#111111] shadow-[24px_0_70px_rgba(0,0,0,0.28)] backdrop-blur-xl"
               initial={{ x: '-100%', opacity: 0, filter: 'blur(8px)' }}
               animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }}
               exit={{ x: '-100%', opacity: 0, filter: 'blur(8px)' }}
@@ -539,28 +571,28 @@ export function Header() {
                 ease: [0.22, 1, 0.36, 1],
               }}
             >
-              <div className="mb-8 flex items-center justify-between">
-                <motion.span
-                  className="text-xl font-bold tracking-tight"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12, duration: 0.28 }}
-                >
-                  Menu
-                </motion.span>
+              <div className="mb-5 flex items-center justify-between">
+                <a href="/" onClick={() => setMobileMenuOpen(false)}>
+                  <img
+                    src="/logo.png"
+                    alt="IL Distributions LLC"
+                    className="h-9 w-auto max-w-[170px] object-contain"
+                  />
+                </a>
 
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] transition-all duration-300 hover:bg-[#0F5A46] hover:text-white active:scale-95"
+                  aria-label="Close menu"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-[#E7E2D8] transition-all duration-300 hover:bg-[#0F5A46] hover:text-white active:scale-95"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
               {customer && (
                 <motion.div
-                  className="mb-6 flex items-center gap-4 rounded-2xl border border-[#EAE7DF] bg-[#F8F7F3] p-4"
+                  className="mb-5 flex items-center gap-3 rounded-2xl border border-[#EAE7DF] bg-white p-3"
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.14, duration: 0.28 }}
@@ -581,7 +613,7 @@ export function Header() {
               )}
 
               <motion.div
-                className="mb-8"
+                className="mb-6"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.16, duration: 0.32 }}
@@ -595,39 +627,75 @@ export function Header() {
                 />
               </motion.div>
 
-              <nav className="flex flex-col gap-1">
+              <nav className="flex flex-col gap-5">
                 {[
-                  ...primaryNavItems,
-                  [
-                    'My Account',
-                    customer
-                      ? 'https://account.ildistributions.com/profile'
-                      : '/account',
-                  ],
-                  ['Wishlist', '/wishlist'],
-                  ['Orders', '/orders'],
-                ].map(([label, href], index) => (
-                  <motion.a
-                    key={`${label}-${href}`}
-                    href={href}
-                    onClick={() => setMobileMenuOpen(false)}
+                  ...mobileMenuSections,
+                  {
+                    title: 'Account',
+                    items: [
+                      {
+                        label: customer ? 'My Account' : 'Sign In',
+                        href: customer
+                          ? 'https://account.ildistributions.com/profile'
+                          : '/account',
+                        icon: User,
+                      },
+                      { label: 'Wishlist', href: '/wishlist', icon: Heart },
+                      { label: 'Orders', href: '/orders', icon: Package },
+                    ],
+                  },
+                ].map((section, sectionIndex) => (
+                  <motion.div
+                    key={section.title}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
-                      delay: 0.2 + index * 0.035,
+                      delay: 0.18 + sectionIndex * 0.06,
                       duration: 0.28,
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className={`block rounded-xl px-4 py-4 text-base font-semibold tracking-tight transition-all duration-300 hover:translate-x-1 hover:bg-[#F5F5F5] hover:text-[#0F5A46] ${
-                      (href === '/'
-                        ? currentPath === '/'
-                        : currentPath.startsWith(href))
-                        ? 'bg-[#0F5A46]/10 text-[#0F5A46]'
-                        : 'text-[#111111]'
-                    }`}
                   >
-                    {label}
-                  </motion.a>
+                    <p className="mb-2 px-1 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#717182]">
+                      {section.title}
+                    </p>
+
+                    <div className="overflow-hidden rounded-2xl border border-[#EAE7DF] bg-white">
+                      {section.items.map(({ label, href, icon: Icon }, index) => {
+                        const isActive =
+                          href === '/'
+                            ? currentPath === '/'
+                            : currentPath.startsWith(href);
+
+                        return (
+                          <a
+                            key={`${label}-${href}`}
+                            href={href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            aria-current={isActive ? 'page' : undefined}
+                            className={`flex items-center gap-3 px-4 py-3 text-[15px] font-semibold tracking-tight transition-colors duration-200 active:bg-[#F5F5F5] ${
+                              index > 0 ? 'border-t border-[#F0EDE6]' : ''
+                            } ${
+                              isActive
+                                ? 'bg-[#0F5A46]/[0.07] text-[#0F5A46]'
+                                : 'text-[#111111]'
+                            }`}
+                          >
+                            <span
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                                isActive
+                                  ? 'bg-[#0F5A46] text-white'
+                                  : 'bg-[#F3F1EA] text-[#0F5A46]'
+                              }`}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <span className="flex-1">{label}</span>
+                            <ChevronRight className="h-4 w-4 text-[#B5B2A8]" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
                 ))}
 
                 {customer && (
@@ -637,12 +705,13 @@ export function Header() {
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
-                      delay: 0.35,
+                      delay: 0.38,
                       duration: 0.28,
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className="mt-2 block rounded-xl px-4 py-4 text-left text-base font-semibold tracking-tight text-red-600 transition-all duration-300 hover:translate-x-1 hover:bg-red-50"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm font-bold text-red-600 transition-colors duration-200 active:bg-red-50"
                   >
+                    <LogOut className="h-4 w-4" />
                     Sign out
                   </motion.button>
                 )}

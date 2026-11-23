@@ -59,14 +59,14 @@ export function Footer() {
       <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-[#0F5A46]/18 blur-3xl" />
       <div className="absolute -right-24 bottom-20 h-72 w-72 rounded-full bg-[#C8A45D]/14 blur-3xl" />
 
-      <div className="container relative z-10 mx-auto px-4 py-16 md:px-6 md:py-20">
-        <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:col-span-1">
+      <div className="container relative z-10 mx-auto px-4 py-10 md:px-6 md:py-20">
+        <div className="mb-8 grid grid-cols-2 gap-x-6 gap-y-8 md:mb-12 md:gap-10 lg:grid-cols-4">
+          <div className="col-span-2 lg:col-span-1">
             <a href="/" className="group mb-6 inline-flex items-center transition-all duration-300 hover:-translate-y-0.5">
               <img
                 src="/logo.png"
                 alt="IL Distributions LLC"
-                className="h-14 w-auto max-w-[240px] object-contain brightness-0 invert transition-all duration-300 group-hover:scale-[1.03] group-hover:drop-shadow-[0_8px_18px_rgba(200,164,93,0.25)]"
+                className="h-11 w-auto max-w-[200px] object-contain brightness-0 invert sm:h-14 sm:max-w-[240px] transition-all duration-300 group-hover:scale-[1.03] group-hover:drop-shadow-[0_8px_18px_rgba(200,164,93,0.25)]"
               />
             </a>
 
@@ -120,7 +120,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="col-span-2 md:col-span-1">
             <h3 className="mb-5 text-sm font-bold uppercase tracking-[0.18em] text-white">
               Trust & Legal
             </h3>

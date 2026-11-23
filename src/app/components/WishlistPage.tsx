@@ -47,10 +47,10 @@ const WishlistCard = memo(function WishlistCard({
   onRemove: (productId: string) => void;
 }) {
   return (
-    <article className="overflow-hidden rounded-[1.5rem] border border-[#B9C5BE] bg-[#F7F5F0] shadow-[0_8px_20px_rgba(24,48,40,0.07)] [content-visibility:auto] [contain-intrinsic-size:420px]">
+    <article className="overflow-hidden rounded-2xl border sm:rounded-[1.5rem] border-[#B9C5BE] bg-[#F7F5F0] shadow-[0_8px_20px_rgba(24,48,40,0.07)] [content-visibility:auto] [contain-intrinsic-size:420px]">
       <a
         href={`/product/${item.handle}`}
-        className="flex h-64 items-center justify-center border-b border-[#D6DDD8] bg-white p-5"
+        className="flex aspect-square items-center justify-center border-b border-[#D6DDD8] bg-white p-2 sm:aspect-auto sm:h-64 sm:p-5"
       >
         {item.image_url ? (
           <img
@@ -68,23 +68,23 @@ const WishlistCard = memo(function WishlistCard({
         )}
       </a>
 
-      <div className="p-5">
+      <div className="p-2.5 sm:p-5">
         <a href={`/product/${item.handle}`}>
-          <h2 className="line-clamp-2 min-h-[48px] text-base font-extrabold leading-snug text-[#17251F] transition-colors hover:text-[#0F5A46]">
+          <h2 className="line-clamp-2 text-[13px] font-semibold leading-snug text-[#17251F] sm:min-h-[48px] sm:text-base sm:font-extrabold transition-colors hover:text-[#0F5A46]">
             {item.title}
           </h2>
         </a>
 
         {item.price !== null && item.price !== undefined && item.price !== '' && (
-          <p className="mt-3 text-xl font-extrabold text-[#0F5A46]">
+          <p className="mt-1 text-sm font-extrabold text-[#0F5A46] sm:mt-3 sm:text-xl">
             ${Number(item.price).toFixed(2)}
           </p>
         )}
 
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-3">
           <a
             href={`/product/${item.handle}`}
-            className="flex h-11 items-center justify-center rounded-xl bg-[#0F5A46] px-4 text-sm font-bold text-white transition-colors hover:bg-[#126B54]"
+            className="flex h-9 items-center justify-center rounded-xl bg-[#0F5A46] px-3 text-xs sm:h-11 sm:px-4 sm:text-sm font-bold text-white transition-colors hover:bg-[#126B54]"
           >
             View Product
           </a>
@@ -92,7 +92,7 @@ const WishlistCard = memo(function WishlistCard({
             type="button"
             disabled={removing}
             onClick={() => onRemove(item.product_id)}
-            className="flex h-11 items-center justify-center rounded-xl border border-[#E4BDB8] bg-[#FFF8F7] px-4 text-sm font-bold text-[#A13D32] transition-colors hover:bg-[#A13D32] hover:text-white disabled:cursor-wait disabled:opacity-45"
+            className="flex h-9 items-center justify-center rounded-xl border border-[#E4BDB8] bg-[#FFF8F7] px-3 text-xs sm:h-11 sm:px-4 sm:text-sm font-bold text-[#A13D32] transition-colors hover:bg-[#A13D32] hover:text-white disabled:cursor-wait disabled:opacity-45"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {removing ? 'Removing' : 'Remove'}
@@ -340,7 +340,7 @@ export function WishlistPage() {
               </p>
             )}
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
               {visibleItems.map((item, index) => (
                 <WishlistCard
                   key={item.id || item.product_id}

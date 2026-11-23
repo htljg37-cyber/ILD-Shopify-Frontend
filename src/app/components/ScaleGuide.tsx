@@ -206,7 +206,7 @@ export function ScaleGuide() {
 
   return (
     <section className="performance-section relative overflow-hidden bg-[#F7F5F0] pb-6 pt-8 md:pb-8 md:pt-10">
-      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-3 sm:px-6 lg:px-10">
         <motion.div
           initial={{opacity: 0, y: 12}}
           whileInView={{opacity: 1, y: 0}}
@@ -215,34 +215,34 @@ export function ScaleGuide() {
             duration: 0.42,
             ease: [0.22, 1, 0.36, 1] as const,
           }}
-          className="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between"
+          className="mb-5 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between md:gap-5"
         >
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-4 py-2 shadow-sm">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white px-3 py-1.5 shadow-sm md:mb-4 md:px-4 md:py-2">
               <Sparkles className="h-4 w-4 text-[#C8A45D]" />
               <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">
                 Size Made Simple
               </span>
             </div>
 
-            <h2 className="mb-3 text-4xl font-extrabold tracking-[-0.045em] text-[#111111] md:text-5xl">
+            <h2 className="mb-2 text-[1.75rem] font-extrabold leading-tight tracking-[-0.035em] text-[#111111] md:mb-3 md:text-5xl">
               Scale & Size Guide
             </h2>
 
-            <p className="max-w-2xl text-base leading-relaxed text-[#717182]">
+            <p className="max-w-2xl text-sm leading-relaxed text-[#717182] md:text-base">
               Compare common collectible sizes before choosing the right piece
               for your display.
             </p>
           </div>
         </motion.div>
 
-        <div className="overflow-hidden rounded-[2.25rem] border border-[#DED9CF] bg-white/90 shadow-[0_16px_42px_rgba(17,17,17,0.06)]">
+        <div className="overflow-hidden rounded-[1.5rem] border border-[#DED9CF] bg-white/90 sm:rounded-[2.25rem] shadow-[0_16px_42px_rgba(17,17,17,0.06)]">
           <div className="grid lg:grid-cols-[0.82fr_1.18fr]">
-            <div className="border-b border-[#E4DFD5] p-5 sm:p-7 lg:border-b-0 lg:border-r lg:p-8">
+            <div className="border-b border-[#E4DFD5] p-4 sm:p-7 lg:border-b-0 lg:border-r lg:p-8">
               <div
                 role="tablist"
                 aria-label="Collectible size type"
-                className="mb-7 grid grid-cols-2 rounded-2xl bg-[#EDE9E0] p-1.5"
+                className="mb-4 grid grid-cols-2 rounded-2xl bg-[#EDE9E0] p-1.5 sm:mb-7"
               >
                 <button
                   type="button"
@@ -319,13 +319,13 @@ export function ScaleGuide() {
                 })}
               </div>
 
-              <div className="mt-7 rounded-2xl border border-[#E1DCD2] bg-[#F8F7F3] p-5">
+              <div className="mt-4 rounded-2xl border border-[#E1DCD2] bg-[#F8F7F3] p-4 sm:mt-7 sm:p-5">
                   <div className="mb-3 flex items-start justify-between gap-4">
                     <div>
                       <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">
                         Approximate size
                       </p>
-                      <h3 className="text-2xl font-extrabold tracking-tight text-[#111111]">
+                      <h3 className="text-xl font-extrabold tracking-tight text-[#111111] sm:text-2xl">
                         {selected.title}
                       </h3>
                     </div>
@@ -345,10 +345,10 @@ export function ScaleGuide() {
               </div>
             </div>
 
-            <div className="relative flex min-h-[480px] flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_40%,rgba(15,90,70,0.08),transparent_46%),linear-gradient(145deg,#FBFAF7_0%,#F2EEE6_100%)] p-5 sm:p-8">
+            <div className="relative flex min-h-[340px] flex-col overflow-hidden sm:min-h-[480px] bg-[radial-gradient(circle_at_50%_40%,rgba(15,90,70,0.08),transparent_46%),linear-gradient(145deg,#FBFAF7_0%,#F2EEE6_100%)] p-5 sm:p-8">
               <div className="pointer-events-none absolute inset-0 opacity-[0.035] bg-[linear-gradient(90deg,rgba(17,17,17,0.20)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.20)_1px,transparent_1px)] bg-[size:34px_34px]" />
 
-              <div className="relative z-10 h-[340px] shrink-0 overflow-visible sm:h-[380px] lg:h-[400px]">
+              <div className="relative z-10 h-[240px] shrink-0 overflow-visible sm:h-[380px] lg:h-[400px]">
                 <AnimatePresence mode="wait">
                   {mode === 'diecast' ? (
                     <motion.div

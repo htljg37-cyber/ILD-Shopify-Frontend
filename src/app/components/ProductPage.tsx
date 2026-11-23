@@ -1,6 +1,7 @@
 import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-import type {MouseEvent, SyntheticEvent} from 'react';
+import type {MouseEvent, SyntheticEvent, TouchEvent} from 'react';
+import {createPortal} from 'react-dom';
 
 import {
 
@@ -583,6 +584,30 @@ const ProductGallery = memo(function ProductGallery({
     [currentImageIndex, handleImageSelection, images],
   );
 
+  // Mobile: swipe left/right on the main image to change photos.
+  const touchStartRef = useRef<{x: number; y: number} | null>(null);
+
+  const handleTouchStart = useCallback((event: TouchEvent) => {
+    const touch = event.touches[0];
+    touchStartRef.current = touch ? {x: touch.clientX, y: touch.clientY} : null;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (event: TouchEvent) => {
+      const start = touchStartRef.current;
+      touchStartRef.current = null;
+      const touch = event.changedTouches[0];
+      if (!start || !touch) return;
+
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+      if (Math.abs(deltaX) < 40 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+      showAdjacentImage(deltaX < 0 ? 'next' : 'previous');
+    },
+    [showAdjacentImage],
+  );
+
   const canUseHoverZoom = useCallback(() => {
     return (
       typeof window !== 'undefined' &&
@@ -650,11 +675,13 @@ const ProductGallery = memo(function ProductGallery({
   return (
     <div>
       <div
-        className="group relative overflow-hidden rounded-[2rem] border border-[#D8DDD8] p-4 shadow-[0_12px_32px_rgba(17,17,17,0.07)] transition-[background-color] duration-200 md:p-8"
+        className="group relative overflow-hidden rounded-[1.5rem] border border-[#D8DDD8] p-2 shadow-[0_12px_32px_rgba(17,17,17,0.07)] transition-[background-color] duration-200 sm:p-4 md:rounded-[2rem] md:p-8"
         style={{backgroundColor: imagePresentation.backgroundColor}}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {isOutOfStock && (
-          <div className="absolute left-6 right-6 top-6 z-30 rounded-full bg-[#111111] px-5 py-3 text-center text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+          <div className="absolute left-4 right-4 top-4 z-30 rounded-full bg-[#111111] px-4 py-2 text-center text-[11px] md:left-6 md:right-6 md:top-6 md:px-5 md:py-3 md:text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
             Out of Stock
           </div>
         )}
@@ -675,7 +702,7 @@ const ProductGallery = memo(function ProductGallery({
               onMouseEnter={handleZoomEnter}
               onMouseMove={handleZoomMove}
               onMouseLeave={handleZoomLeave}
-              className={`relative z-10 h-[320px] w-full object-contain transition-transform duration-150 ease-out sm:h-[430px] lg:h-[560px] ${
+              className={`relative z-10 h-[clamp(220px,36vh,300px)] w-full object-contain transition-transform duration-150 ease-out sm:h-[430px] lg:h-[560px] ${
                 isOutOfStock ? 'opacity-70 grayscale' : ''
               }`}
             />
@@ -686,7 +713,7 @@ const ProductGallery = memo(function ProductGallery({
                   type="button"
                   onClick={() => showAdjacentImage('previous')}
                   aria-label="Show previous product image"
-                  className="absolute left-4 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/90 text-[#0F5A46] opacity-90 shadow-lg backdrop-blur transition-[opacity,transform,background-color] hover:scale-105 hover:bg-white focus-visible:opacity-100 md:left-6 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="absolute left-2 top-1/2 z-30 hidden h-11 w-11 -translate-y-1/2 sm:flex items-center justify-center rounded-full border border-white/70 bg-white/90 text-[#0F5A46] opacity-90 shadow-lg backdrop-blur transition-[opacity,transform,background-color] hover:scale-105 hover:bg-white focus-visible:opacity-100 md:left-6 lg:opacity-0 lg:group-hover:opacity-100"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
@@ -695,7 +722,7 @@ const ProductGallery = memo(function ProductGallery({
                   type="button"
                   onClick={() => showAdjacentImage('next')}
                   aria-label="Show next product image"
-                  className="absolute right-4 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/90 text-[#0F5A46] opacity-90 shadow-lg backdrop-blur transition-[opacity,transform,background-color] hover:scale-105 hover:bg-white focus-visible:opacity-100 md:right-6 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="absolute right-2 top-1/2 z-30 hidden h-11 w-11 -translate-y-1/2 sm:flex items-center justify-center rounded-full border border-white/70 bg-white/90 text-[#0F5A46] opacity-90 shadow-lg backdrop-blur transition-[opacity,transform,background-color] hover:scale-105 hover:bg-white focus-visible:opacity-100 md:right-6 lg:opacity-0 lg:group-hover:opacity-100"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -711,14 +738,32 @@ const ProductGallery = memo(function ProductGallery({
             )}
           </>
         ) : (
-          <div className="relative z-10 flex h-[320px] items-center justify-center text-[#717182] sm:h-[430px] lg:h-[560px]">
+          <div className="relative z-10 flex h-[clamp(220px,36vh,300px)] items-center justify-center text-[#717182] sm:h-[430px] lg:h-[560px]">
             No image
           </div>
         )}
       </div>
 
       {images.length > 1 && (
-        <div className="relative mt-5">
+        <div
+          className="mt-3 flex items-center justify-center gap-1.5 md:hidden"
+          aria-hidden="true"
+        >
+          {images.slice(0, 10).map((image: any, index: number) => (
+            <span
+              key={image.id || image.url || index}
+              className={`h-1.5 rounded-full transition-all duration-200 ${
+                index === (currentImageIndex >= 0 ? currentImageIndex : 0)
+                  ? 'w-5 bg-[#0F5A46]'
+                  : 'w-1.5 bg-[#0F5A46]/25'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {images.length > 1 && (
+        <div className="relative mt-5 hidden md:block">
           <button
             type="button"
             onClick={() => scrollThumbnails('left')}
@@ -794,11 +839,11 @@ const BenefitCard = memo(function BenefitCard({
 
   return (
 
-    <div className="rounded-2xl border border-[#D8DDD8] bg-[#F8F7F3] p-4">
+    <div className="flex flex-col items-center rounded-2xl border border-[#D8DDD8] bg-[#F8F7F3] p-2.5 text-center sm:items-start sm:p-4 sm:text-left">
 
-      <Icon className="mb-3 h-6 w-6 text-[#0F5A46]" />
+      <Icon className="mb-1.5 h-5 w-5 text-[#0F5A46] sm:mb-3 sm:h-6 sm:w-6" />
 
-      <p className="text-sm font-bold text-[#111111]">{label}</p>
+      <p className="text-[11px] font-bold leading-tight text-[#111111] sm:text-sm">{label}</p>
 
     </div>
 
@@ -877,6 +922,24 @@ export function ProductPage({
   const [primaryImageReady, setPrimaryImageReady] = useState(false);
 
   const readyWasAnnouncedRef = useRef(false);
+
+  // Mobile sticky buy bar: shown only while the main Add to Cart buttons
+  // are scrolled out of view, so the price and button are always one tap away.
+  const mainActionsRef = useRef<HTMLDivElement | null>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
+  useEffect(() => {
+    const node = mainActionsRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      {threshold: 0},
+    );
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [product?.id, loading]);
 
 
 
@@ -1944,11 +2007,11 @@ export function ProductPage({
 
   return (
 
-    <main className="overflow-hidden bg-[#F1F1EC]">
+    <main className="overflow-hidden bg-[#F1F1EC] pb-20 md:pb-0">
 
-      <section className="container mx-auto px-4 py-10 md:px-6 md:py-16">
+      <section className="container mx-auto px-3 pb-6 pt-3 sm:px-4 md:px-6 md:py-16">
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-x-12 lg:gap-y-6">
+        <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-2 lg:gap-x-12 lg:gap-y-6">
 
           <div className="lg:col-start-1 lg:row-start-1">
 
@@ -1978,9 +2041,9 @@ export function ProductPage({
 
             <div className="lg:sticky lg:top-28">
 
-              <div className="rounded-[2rem] border border-[#D8DDD8] bg-white p-6 shadow-[0_12px_32px_rgba(17,17,17,0.07)] md:p-8">
+              <div className="rounded-[1.5rem] border border-[#D8DDD8] bg-white p-4 shadow-[0_12px_32px_rgba(17,17,17,0.07)] sm:p-6 md:rounded-[2rem] md:p-8">
 
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-[#E7F0EB] px-4 py-2">
+                <div className="mb-5 hidden items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-[#E7F0EB] px-4 py-2 md:inline-flex">
 
                   <Sparkles className="h-4 w-4 text-[#C8A45D]" />
 
@@ -1994,9 +2057,9 @@ export function ProductPage({
 
 
 
-                <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="mb-3 flex items-start justify-between gap-3 md:mb-5 md:gap-4">
 
-                  <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#111111] sm:text-4xl md:text-5xl">
+                  <h1 className="text-xl font-extrabold leading-snug tracking-tight text-[#111111] sm:text-3xl md:text-5xl md:leading-tight">
 
                     {product.title}
 
@@ -2018,7 +2081,7 @@ export function ProductPage({
 
                     }
 
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border transition-[transform,border-color,background-color,color] duration-200 hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 ${
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-[transform,border-color,background-color,color] duration-200 hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 ${
 
                       isWishlisted
 
@@ -2208,9 +2271,9 @@ export function ProductPage({
 
 
 
-                <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-[#E7E9E6] pb-5">
+                <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-[#E7E9E6] pb-4 md:mb-5 md:gap-3 md:pb-5">
 
-                  <p className="text-3xl font-extrabold text-[#111111] md:text-4xl">
+                  <p className="text-2xl font-extrabold text-[#111111] md:text-4xl">
 
                     ${price.toFixed(2)}
 
@@ -2220,7 +2283,7 @@ export function ProductPage({
 
                   {hasCompareAtPrice && (
 
-                    <p className="text-xl font-bold text-[#9CA3AF] line-through md:text-2xl">
+                    <p className="text-base font-bold text-[#9CA3AF] line-through md:text-2xl">
 
                       ${compareAtPrice.toFixed(2)}
 
@@ -2264,9 +2327,9 @@ export function ProductPage({
 
 
 
-                <div className="mb-5 flex flex-col items-start gap-2">
+                <div className="mb-4 flex flex-wrap items-start gap-2 md:mb-5 md:flex-col">
 
-                  <div className="inline-flex items-center gap-2 rounded-full bg-[#E7F0EB] px-4 py-2 text-sm font-bold text-[#0F5A46]">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-[#E7F0EB] px-3 py-1.5 text-xs font-bold text-[#0F5A46] md:px-4 md:py-2 md:text-sm">
 
                     <Truck className="h-4 w-4" />
 
@@ -2278,7 +2341,7 @@ export function ProductPage({
 
                   {deliveryEstimate && (
 
-                    <div className="inline-flex items-center gap-2 rounded-full bg-[#F2E8CA] px-4 py-2 text-sm font-bold text-[#73591E]">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#F2E8CA] px-3 py-1.5 text-xs font-bold text-[#73591E] md:px-4 md:py-2 md:text-sm">
 
                       <Clock className="h-4 w-4" />
 
@@ -2374,7 +2437,10 @@ export function ProductPage({
 
 
 
-                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div
+                  ref={mainActionsRef}
+                  className="mb-5 grid grid-cols-2 gap-2 sm:gap-3"
+                >
 
                   <Button
 
@@ -2382,7 +2448,7 @@ export function ProductPage({
 
                     disabled={adding || isSelectedVariantOutOfStock}
 
-                    className={`h-14 rounded-2xl px-8 text-base text-white transition-[transform,background-color] duration-200 active:scale-[0.98] ${
+                    className={`h-12 rounded-2xl px-3 text-sm text-white md:h-14 md:px-8 md:text-base transition-[transform,background-color] duration-200 active:scale-[0.98] ${
 
                       isSelectedVariantOutOfStock
 
@@ -2418,7 +2484,7 @@ export function ProductPage({
 
                     variant="outline"
 
-                    className={`h-14 rounded-2xl border-[#0F5A46] bg-white text-base transition-[transform,background-color,color] duration-200 active:scale-[0.98] ${
+                    className={`h-12 rounded-2xl border-[#0F5A46] bg-white px-3 text-sm md:h-14 md:text-base transition-[transform,background-color,color] duration-200 active:scale-[0.98] ${
 
                       isSelectedVariantOutOfStock
 
@@ -2466,7 +2532,7 @@ export function ProductPage({
 
 
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
 
                   {productBenefits.map((benefit) => (
 
@@ -2502,7 +2568,55 @@ export function ProductPage({
 
 
 
-      <ProductReviews handle={product.handle} />
+      {/* Mobile-only sticky buy bar (portaled so page transitions can't break position: fixed) */}
+      {typeof document !== 'undefined' && createPortal(
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-[#E7E2D8] bg-white/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 shadow-[0_-10px_30px_rgba(17,17,17,0.10)] backdrop-blur transition-transform duration-300 ease-out md:hidden ${
+          showStickyBar ? 'translate-y-0' : 'pointer-events-none translate-y-full'
+        }`}
+        aria-hidden={!showStickyBar}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-[#717182]">
+              {product.title}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-lg font-extrabold text-[#111111]">
+                ${price.toFixed(2)}
+              </p>
+              {hasCompareAtPrice && (
+                <p className="text-xs font-bold text-[#9CA3AF] line-through">
+                  ${compareAtPrice.toFixed(2)}
+                </p>
+              )}
+            </div>
+          </div>
+          <Button
+            onClick={handleAddToCart}
+            disabled={adding || isSelectedVariantOutOfStock}
+            tabIndex={showStickyBar ? 0 : -1}
+            className={`h-12 shrink-0 rounded-2xl px-5 text-sm text-white active:scale-[0.98] ${
+              isSelectedVariantOutOfStock
+                ? 'cursor-not-allowed bg-[#717182] hover:bg-[#717182]'
+                : 'bg-[#0F5A46] hover:bg-[#126B54]'
+            }`}
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            {isSelectedVariantOutOfStock
+              ? 'Sold Out'
+              : adding
+                ? 'Adding...'
+                : addedMessage
+                  ? 'Added!'
+                  : 'Add to Cart'}
+          </Button>
+        </div>
+      </div>,
+      document.body,
+      )}
+
+      <ProductReviews handle={product.handle} />
 
 
 

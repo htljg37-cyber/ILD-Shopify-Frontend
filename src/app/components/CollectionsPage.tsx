@@ -33,9 +33,9 @@ const CollectionCard = memo(function CollectionCard({
     <a
       href={`/collections/${collection.handle}`}
       style={collectionCardStyle}
-      className="group relative isolate overflow-hidden rounded-[1.75rem] border border-[#AEBDB3] bg-[#F5F3ED] shadow-[0_12px_30px_rgba(20,42,33,0.09)] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-[#547E6D] hover:shadow-[0_18px_38px_rgba(20,42,33,0.14)] motion-reduce:transform-none motion-reduce:transition-none"
+      className="group relative isolate overflow-hidden rounded-2xl border sm:rounded-[1.75rem] border-[#AEBDB3] bg-[#F5F3ED] shadow-[0_12px_30px_rgba(20,42,33,0.09)] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-[#547E6D] hover:shadow-[0_18px_38px_rgba(20,42,33,0.14)] motion-reduce:transform-none motion-reduce:transition-none"
     >
-      <div className="relative h-64 overflow-hidden bg-[linear-gradient(135deg,#102B23_0%,#101714_62%,#342B1C_100%)] sm:h-72">
+      <div className="relative h-40 overflow-hidden bg-[linear-gradient(135deg,#102B23_0%,#101714_62%,#342B1C_100%)] sm:h-72">
         {hasImage ? (
           <img
             src={getCollectionImageUrl(collection.image.url)}
@@ -51,25 +51,25 @@ const CollectionCard = memo(function CollectionCard({
 
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,12,9,0.06)_15%,rgba(5,12,9,0.78)_100%)]" />
 
-        <div className="absolute inset-x-0 bottom-0 p-6">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.17em] text-[#E2C576]">
+        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-6">
+          <p className="mb-2 hidden text-[11px] font-bold uppercase tracking-[0.17em] text-[#E2C576] sm:block">
             Collection
           </p>
-          <h2 className="text-2xl font-extrabold leading-tight tracking-[-0.025em] text-white">
+          <h2 className="text-[15px] font-extrabold leading-tight tracking-[-0.025em] text-white sm:text-2xl">
             {collection.title}
           </h2>
         </div>
       </div>
 
-      <div className="flex min-h-36 flex-col justify-between p-6">
-        <p className="line-clamp-2 text-sm leading-relaxed text-[#667168]">
+      <div className="flex flex-col justify-between p-3 sm:min-h-36 sm:p-6">
+        <p className="hidden text-sm leading-relaxed text-[#667168] sm:line-clamp-2">
           {collection.description ||
             'Explore products available in this collection.'}
         </p>
 
-        <span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#0F5A46]">
+        <span className="inline-flex items-center gap-2 text-xs font-extrabold text-[#0F5A46] sm:mt-5 sm:text-sm">
           Explore collection
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DDE8E2] transition-colors duration-200 group-hover:bg-[#0F5A46] group-hover:text-white motion-reduce:transition-none">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#DDE8E2] sm:h-8 sm:w-8 transition-colors duration-200 group-hover:bg-[#0F5A46] group-hover:text-white motion-reduce:transition-none">
             <ArrowRight className="h-4 w-4" />
           </span>
         </span>
@@ -80,9 +80,9 @@ const CollectionCard = memo(function CollectionCard({
 
 function CollectionCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-[#AEBDB3] bg-[#F5F3ED]">
-      <div className="h-64 bg-[#AEBDB3] sm:h-72" />
-      <div className="space-y-4 p-6">
+    <div className="overflow-hidden rounded-2xl border border-[#AEBDB3] bg-[#F5F3ED] sm:rounded-[1.75rem]">
+      <div className="h-40 bg-[#AEBDB3] sm:h-72" />
+      <div className="space-y-3 p-3 sm:space-y-4 sm:p-6">
         <div className="h-4 w-full rounded-full bg-[#D9DED8]" />
         <div className="h-4 w-2/3 rounded-full bg-[#D9DED8]" />
         <div className="h-8 w-36 rounded-full bg-[#D9DED8]" />
@@ -125,8 +125,8 @@ export function CollectionsPage() {
     <section className="performance-section relative min-h-[70vh] overflow-hidden bg-[radial-gradient(circle_at_6%_6%,rgba(15,90,70,0.17),transparent_28%),radial-gradient(circle_at_94%_8%,rgba(200,164,93,0.14),transparent_24%),linear-gradient(180deg,#C9D6CE_0%,#D7DDD6_42%,#E6E3DB_100%)] py-6 md:py-8">
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[linear-gradient(90deg,rgba(17,17,17,0.18)_1px,transparent_1px),linear-gradient(rgba(17,17,17,0.18)_1px,transparent_1px)] bg-[size:46px_46px]" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-4 md:px-6 lg:px-8">
-        <header className="relative mb-7 overflow-hidden rounded-[1.75rem] border border-[#6E9182]/35 bg-[linear-gradient(118deg,#153F34_0%,#102A23_66%,#342D20_100%)] px-6 py-7 shadow-[0_16px_38px_rgba(8,39,31,0.15)] md:px-9 md:py-9">
+      <div className="relative z-10 mx-auto w-full max-w-[1680px] px-3 sm:px-4 md:px-6 lg:px-8">
+        <header className="relative mb-5 overflow-hidden rounded-[1.5rem] border border-[#6E9182]/35 md:mb-7 md:rounded-[1.75rem] bg-[linear-gradient(118deg,#153F34_0%,#102A23_66%,#342D20_100%)] px-5 py-6 shadow-[0_16px_38px_rgba(8,39,31,0.15)] md:px-9 md:py-9">
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[36%] md:block">
             <span className="absolute right-20 top-1/2 h-32 w-52 -translate-y-[58%] rotate-[-4deg] rounded-[1.35rem] border border-white/10 bg-white/[0.035]" />
             <span className="absolute right-8 top-1/2 h-32 w-52 -translate-y-[42%] rotate-[5deg] rounded-[1.35rem] border border-[#C8A45D]/25 bg-[#C8A45D]/[0.035]" />
@@ -138,7 +138,7 @@ export function CollectionsPage() {
               Collections
             </div>
 
-            <h1 className="text-3xl font-extrabold tracking-[-0.04em] text-white md:text-5xl">
+            <h1 className="text-2xl font-extrabold tracking-[-0.04em] text-white md:text-5xl">
               Find your next collection
             </h1>
 
@@ -161,7 +161,7 @@ export function CollectionsPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <CollectionCardSkeleton key={index} />
             ))}
@@ -176,7 +176,7 @@ export function CollectionsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-4">
             {collections.map((collection, index) => (
               <CollectionCard
                 key={collection.id || collection.handle}

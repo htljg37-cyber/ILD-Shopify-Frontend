@@ -37,7 +37,7 @@ function formatDate(review: ExternalReview) {
 function ReviewCard({review, showProduct = true}: {review: ExternalReview; showProduct?: boolean}) {
   const source = REVIEW_SOURCES[review.source];
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-[#E1DCD2] bg-white/85 p-5 shadow-[0_12px_34px_rgba(17,17,17,0.045)]">
+    <article className="flex h-full flex-col rounded-2xl border border-[#E1DCD2] bg-white/85 p-4 sm:rounded-3xl sm:p-5 shadow-[0_12px_34px_rgba(17,17,17,0.045)]">
       <div className="mb-3 flex items-center justify-between gap-3">
         <Stars rating={review.rating} />
         <span className="rounded-full bg-[#0F5A46]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#0F5A46]">
@@ -75,38 +75,38 @@ function ReviewCard({review, showProduct = true}: {review: ExternalReview; showP
 
 function SourceSummary() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4">
       <a
         href={REVIEW_SOURCES.tiktok.profileUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex items-center justify-between gap-4 rounded-3xl border border-[#E1DCD2] bg-white/85 p-5 transition-colors hover:border-[#0F5A46]/30"
+        className="group flex items-center justify-between gap-2 rounded-2xl border border-[#E1DCD2] bg-white/85 p-3.5 sm:gap-4 sm:rounded-3xl sm:p-5 transition-colors hover:border-[#0F5A46]/30"
       >
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#717182]">TikTok Shop</p>
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-3xl font-extrabold text-[#111111]">{REVIEW_STATS.tiktok.average.toFixed(1)}</span>
+            <span className="text-2xl font-extrabold text-[#111111] sm:text-3xl">{REVIEW_STATS.tiktok.average.toFixed(1)}</span>
             <Stars rating={REVIEW_STATS.tiktok.average} />
           </div>
           <p className="mt-1 text-sm text-[#717182]">{REVIEW_STATS.tiktok.count} verified reviews</p>
         </div>
-        <ExternalLink className="h-5 w-5 text-[#717182] group-hover:text-[#0F5A46]" />
+        <ExternalLink className="hidden h-5 w-5 text-[#717182] group-hover:text-[#0F5A46] sm:block" />
       </a>
 
       <a
         href={REVIEW_SOURCES.ebay.profileUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex items-center justify-between gap-4 rounded-3xl border border-[#E1DCD2] bg-white/85 p-5 transition-colors hover:border-[#0F5A46]/30"
+        className="group flex items-center justify-between gap-2 rounded-2xl border border-[#E1DCD2] bg-white/85 p-3.5 sm:gap-4 sm:rounded-3xl sm:p-5 transition-colors hover:border-[#0F5A46]/30"
       >
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#717182]">eBay</p>
-          <p className="mt-1 text-3xl font-extrabold text-[#111111]">{REVIEW_STATS.ebay.positivePercent}% positive</p>
+          <p className="mt-1 text-lg font-extrabold leading-tight text-[#111111] sm:text-3xl">{REVIEW_STATS.ebay.positivePercent}% positive</p>
           <p className="mt-1 text-sm text-[#717182]">
             {REVIEW_STATS.ebay.ratings} ratings{REVIEW_STATS.ebay.topRated ? ' · Top Rated Seller' : ''}
           </p>
         </div>
-        <ExternalLink className="h-5 w-5 text-[#717182] group-hover:text-[#0F5A46]" />
+        <ExternalLink className="hidden h-5 w-5 text-[#717182] group-hover:text-[#0F5A46] sm:block" />
       </a>
     </div>
   );
@@ -117,16 +117,16 @@ export function CustomerReviews() {
   const reviews = writtenReviews();
   return (
     <section className="relative bg-[#F7F5F0] pt-8 pb-10 md:pt-10 md:pb-12">
-      <div className="mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
-        <div className="mb-8 max-w-3xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/85 px-4 py-2 shadow-sm">
+      <div className="mx-auto w-full max-w-[1680px] px-3 sm:px-6 lg:px-10">
+        <div className="mb-5 max-w-3xl md:mb-8">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0F5A46]/15 bg-white/85 px-3 py-1.5 shadow-sm md:mb-4 md:px-4 md:py-2">
             <MessageSquareQuote className="h-4 w-4 text-[#C8A45D]" />
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0F5A46]">Customer Reviews</span>
           </div>
-          <h2 className="mb-3 text-4xl font-extrabold tracking-[-0.045em] text-[#111111] md:text-5xl">
+          <h2 className="mb-2 text-[1.75rem] font-extrabold leading-tight tracking-[-0.035em] text-[#111111] md:mb-3 md:text-5xl">
             What Our Buyers Say
           </h2>
-          <p className="text-base leading-relaxed text-[#717182]">
+          <p className="text-sm leading-relaxed text-[#717182] md:text-base">
             We also sell on TikTok Shop and eBay. These are real reviews our customers left there, shown with
             the marketplace they came from. Updated {REVIEW_STATS.updated}.
           </p>
@@ -136,7 +136,7 @@ export function CustomerReviews() {
           <SourceSummary />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start sm:mx-0 sm:grid sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 sm:[&>*]:w-auto sm:grid-cols-2 xl:grid-cols-4">
           {reviews.map((review, index) => (
             <ReviewCard key={`${review.source}-${review.author}-${index}`} review={review} />
           ))}
@@ -153,10 +153,10 @@ export function ProductReviews({handle}: {handle: string}) {
   const average = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
 
   return (
-    <section className="mx-auto w-full max-w-[1680px] px-4 py-10 sm:px-6 lg:px-10">
+    <section className="mx-auto w-full max-w-[1680px] px-3 py-8 sm:px-6 sm:py-10 lg:px-10">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#111111] md:text-3xl">Reviews from our marketplaces</h2>
+          <h2 className="text-xl font-extrabold tracking-tight text-[#111111] sm:text-2xl md:text-3xl">Reviews from our marketplaces</h2>
           <p className="mt-1 text-sm text-[#717182]">
             Verified buyers of this product on TikTok Shop and eBay.
           </p>
@@ -168,7 +168,7 @@ export function ProductReviews({handle}: {handle: string}) {
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start sm:mx-0 sm:grid sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 sm:[&>*]:w-auto sm:grid-cols-2 xl:grid-cols-3">
         {reviews.map((review, index) => (
           <ReviewCard key={`${review.source}-${review.author}-${index}`} review={review} showProduct={false} />
         ))}
