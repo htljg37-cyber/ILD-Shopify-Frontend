@@ -69,6 +69,28 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/logo2.png" />
 
+    <!-- Organization-level return policy (matches /returns-policy):
+         30 days, by mail; customer pays return shipping on change-of-mind
+         returns, free returns for damaged/defective/incorrect items. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "IL Distributions LLC",
+        "url": "https://www.ildistributions.com/",
+        "logo": "https://www.ildistributions.com/logo2.png",
+        "hasMerchantReturnPolicy": {
+          "@type": "MerchantReturnPolicy",
+          "applicableCountry": "US",
+          "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+          "merchantReturnDays": 30,
+          "returnMethod": "https://schema.org/ReturnByMail",
+          "customerRemorseReturnFees": "https://schema.org/ReturnFeesCustomerResponsibility",
+          "itemDefectReturnFees": "https://schema.org/FreeReturn"
+        }
+      }
+    </script>
+
   <style>
   html,
   body {

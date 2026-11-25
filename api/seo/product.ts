@@ -158,7 +158,9 @@ const RETURN_POLICY = {
   returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
   merchantReturnDays: 30,
   returnMethod: 'https://schema.org/ReturnByMail',
-  returnFees: 'https://schema.org/ReturnShippingFees',
+  // ReturnShippingFees would require returnShippingFeesAmount; the customer
+  // pays the actual carrier cost, so declare it as their responsibility.
+  returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
 };
 
 // Mirrors src/lib/shipping.ts so Google gets the same shipping cost the
